@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 25 Lists — Adam's Cinema</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #080608;
+  --velvet: #1a0a10;
+  --velvet-mid: #2a1018;
+  --crimson: #6b0f1a;
+  --crimson-bright: #8b1a28;
+  --gold: #c9a84c;
+  --gold-bright: #e8c86a;
+  --gold-dim: #7a6130;
+  --gold-pale: #3d3018;
+  --cream: #f0e8d8;
+  --cream-dim: #c8b898;
+  --cream-muted: #7a6a58;
+  --cream-ghost: #1e1810;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'EB Garamond', Georgia, serif;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
+  pointer-events: none;
+  z-index: 500;
+}
+
+.ceiling { position: fixed; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent); z-index:10; }
+.ceiling-glow { position:fixed; top:0; left:0; right:0; height:200px; background: linear-gradient(to bottom, rgba(201,168,76,0.05), transparent); pointer-events:none; z-index:1; }
+.floor { position:fixed; bottom:0; left:0; right:0; height:6px; background: repeating-linear-gradient(90deg, var(--crimson) 0px, var(--crimson) 80px, var(--gold-pale) 80px, var(--gold-pale) 84px, var(--crimson) 84px); z-index:10; }
+.floor-glow { position:fixed; bottom:0; left:0; right:0; height:200px; background: linear-gradient(to top, rgba(107,15,26,0.1), transparent); pointer-events:none; z-index:1; }
+
+/* Nav */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8,6,8,0.96);
+  border-bottom: 1px solid var(--gold-pale);
+  padding: 14px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+}
+
+.nav-back {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.3s;
+}
+.nav-back:hover { color: var(--gold); }
+.nav-back-line { width: 24px; height: 1px; background: currentColor; transition: width 0.3s; }
+.nav-back:hover .nav-back-line { width: 36px; }
+
+.nav-title {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--cream-muted);
+  text-transform: uppercase;
+}
+
+/* Header */
+header {
+  text-align: center;
+  padding: 80px 20px 64px;
+  position: relative;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+}
+
+.room-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease forwards 0.2s;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: clamp(44px, 7vw, 88px);
+  line-height: 0.95;
+  color: var(--cream);
+  opacity: 0;
+  animation: fadeUp 0.8s ease forwards 0.4s;
+}
+
+h1 em { font-style: italic; color: var(--gold); display: block; }
+
+.header-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 28px auto;
+  max-width: 400px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease forwards 0.6s;
+}
+.orn-line { flex:1; height:1px; background: linear-gradient(90deg, transparent, var(--gold-dim)); }
+.orn-line.r { background: linear-gradient(270deg, transparent, var(--gold-dim)); }
+.orn-diamond { width:5px; height:5px; background: var(--gold); transform: rotate(45deg); }
+
+.header-sub {
+  font-style: italic;
+  font-size: 18px;
+  color: var(--cream-muted);
+  opacity: 0;
+  animation: fadeUp 0.8s ease forwards 0.8s;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+/* Main content */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 72px 48px 120px;
+  position: relative;
+  z-index: 2;
+}
+
+/* List categories */
+.list-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.list-card {
+  background: linear-gradient(135deg, rgba(26,8,16,0.9), rgba(15,5,8,0.95));
+  border: 1px solid rgba(201,168,76,0.08);
+  padding: 40px 36px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards;
+}
+
+.list-card:nth-child(1) { animation-delay: 0.3s; }
+.list-card:nth-child(2) { animation-delay: 0.4s; }
+.list-card:nth-child(3) { animation-delay: 0.5s; }
+.list-card:nth-child(4) { animation-delay: 0.6s; }
+.list-card:nth-child(5) { animation-delay: 0.7s; }
+.list-card:nth-child(6) { animation-delay: 0.8s; }
+
+.list-card:hover { border-color: rgba(201,168,76,0.3); }
+
+.list-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.list-card:hover::before { opacity: 1; }
+
+.list-card::after {
+  content: '';
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 16px; height: 16px;
+  border-top: 1px solid rgba(201,168,76,0.2);
+  border-left: 1px solid rgba(201,168,76,0.2);
+  transition: all 0.3s;
+}
+.list-card:hover::after { width: 22px; height: 22px; border-color: var(--gold); }
+
+.card-corner-br {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  width: 16px; height: 16px;
+  border-bottom: 1px solid rgba(201,168,76,0.2);
+  border-right: 1px solid rgba(201,168,76,0.2);
+  transition: all 0.3s;
+}
+.list-card:hover .card-corner-br { width: 22px; height: 22px; border-color: var(--gold); }
+
+.card-num {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--gold-dim);
+  margin-bottom: 14px;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 2.5vw, 28px);
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: var(--cream);
+  transition: color 0.3s;
+}
+.list-card:hover .card-title { color: var(--cream); }
+
+.card-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--cream-muted);
+  margin-bottom: 28px;
+}
+
+.card-count {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-count::before { content:''; width: 20px; height:1px; background: var(--gold-pale); }
+
+/* Coming soon state */
+.list-card.empty .card-title,
+.list-card.empty .card-desc { opacity: 0.45; }
+
+.empty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 3px;
+  padding: 4px 10px;
+  border: 1px solid rgba(139,26,40,0.35);
+  color: var(--crimson-bright);
+  margin-bottom: 16px;
+}
+
+/* Full width card */
+.list-card.full { grid-column: 1 / -1; }
+
+@media (max-width: 640px) {
+  main { padding: 48px 24px 100px; }
+  .list-grid { grid-template-columns: 1fr; }
+  .list-card.full { grid-column: 1; }
+  .nav { padding: 12px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">Screening Room No. 2</span>
+</nav>
+
+<header>
+  <div class="room-label">Screening Room No. 2</div>
+  <h1>Top 25<em>Movie Lists</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">Definitive rankings. Argued without apology.</p>
+</header>
+
+<main>
+  <div class="list-grid">
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 001</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">The 25 Greatest Films Ever Made</div>
+      <p class="card-desc">No genre limits, no era bias. The definitive list from across all of cinema history.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; All Eras</div>
+    </div>
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 002</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">25 Greatest War Films</div>
+      <p class="card-desc">From the trenches to the Pacific. Films that refuse to glorify what they depict.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; War</div>
+    </div>
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 003</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">25 Greatest Japanese Films</div>
+      <p class="card-desc">Kurosawa, Kobayashi, Ozu, Mizoguchi — and the names you haven't heard yet.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; Japanese Cinema</div>
+    </div>
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 004</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">25 Greatest Crime Films</div>
+      <p class="card-desc">Noir, heist, gangster, and everything in between. Moral ambiguity at its finest.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; Crime & Noir</div>
+    </div>
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 005</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">25 Most Devastating Films</div>
+      <p class="card-desc">Films that leave a mark. Chosen for emotional impact above all else.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; Drama</div>
+    </div>
+
+    <div class="list-card empty">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 006</div>
+      <div class="empty-badge">In Production</div>
+      <div class="card-title">25 Most Underrated Films</div>
+      <p class="card-desc">Buried gems, overlooked masterpieces, and films that time forgot too quickly.</p>
+      <div class="card-count">25 Films &nbsp;·&nbsp; All Genres</div>
+    </div>
+
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mezzanine — Adam's Cinema</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #080608;
+  --deep: #0d080a;
+  --velvet: #1a0a10;
+  --velvet-mid: #2a1018;
+  --crimson: #6b0f1a;
+  --crimson-bright: #8b1a28;
+  --gold: #c9a84c;
+  --gold-bright: #e8c86a;
+  --gold-dim: #7a6130;
+  --gold-pale: #3d3018;
+  --cream: #f0e8d8;
+  --cream-dim: #c8b898;
+  --cream-muted: #7a6a58;
+  --cream-ghost: #1e1810;
+  --code-bg: #0e0a0c;
+  --code-border: #2a1a20;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'EB Garamond', Georgia, serif;
+  min-height: 100vh;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background:
+    repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px),
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.008) 2px,rgba(255,255,255,0.008) 4px);
+  pointer-events:none; z-index:500;
+}
+
+.ceiling { position:fixed; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,transparent,var(--gold-dim),var(--gold),var(--gold-dim),transparent); z-index:10; }
+.ceiling-glow { position:fixed; top:0; left:0; right:0; height:200px; background:linear-gradient(to bottom,rgba(201,168,76,0.05),transparent); pointer-events:none; z-index:1; }
+.floor { position:fixed; bottom:0; left:0; right:0; height:6px; background:repeating-linear-gradient(90deg,var(--crimson) 0px,var(--crimson) 80px,var(--gold-pale) 80px,var(--gold-pale) 84px,var(--crimson) 84px); z-index:10; }
+.floor-glow { position:fixed; bottom:0; left:0; right:0; height:200px; background:linear-gradient(to top,rgba(107,15,26,0.1),transparent); pointer-events:none; z-index:1; }
+
+/* Nav */
+.nav {
+  position:sticky; top:0; z-index:100;
+  background:rgba(8,6,8,0.96);
+  border-bottom:1px solid var(--gold-pale);
+  padding:14px 48px;
+  display:flex; align-items:center; justify-content:space-between;
+  backdrop-filter:blur(8px);
+}
+.nav-back { display:flex; align-items:center; gap:12px; font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.3s; }
+.nav-back:hover { color:var(--gold); }
+.nav-back-line { width:24px; height:1px; background:currentColor; transition:width 0.3s; }
+.nav-back:hover .nav-back-line { width:36px; }
+.nav-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; color:var(--cream-muted); text-transform:uppercase; }
+
+/* Header */
+header {
+  text-align:center; padding:80px 20px 64px; position:relative;
+}
+header::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:300px; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); }
+
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { font-family:'Playfair Display',serif; font-weight:400; font-size:clamp(44px,7vw,88px); line-height:0.95; color:var(--cream); opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+h1 em { font-style:italic; color:var(--gold); display:block; }
+.header-ornament { display:flex; align-items:center; justify-content:center; gap:14px; margin:28px auto; max-width:400px; opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.orn-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim)); }
+.orn-line.r { background:linear-gradient(270deg,transparent,var(--gold-dim)); }
+.orn-diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); }
+.header-sub { font-style:italic; font-size:18px; color:var(--cream-muted); opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* Main layout */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 72px 48px 140px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Section */
+.section {
+  margin-bottom: 80px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards;
+}
+.section:nth-child(1) { animation-delay: 0.2s; }
+.section:nth-child(2) { animation-delay: 0.35s; }
+.section:nth-child(3) { animation-delay: 0.5s; }
+.section:nth-child(4) { animation-delay: 0.65s; }
+.section:nth-child(5) { animation-delay: 0.8s; }
+
+.section-head {
+  display:flex; align-items:center; gap:20px;
+  margin-bottom:36px; padding-bottom:20px;
+  border-bottom:1px solid rgba(201,168,76,0.1);
+  position:relative;
+}
+.section-head::after { content:''; position:absolute; bottom:-1px; left:0; width:60px; height:1px; background:var(--gold); }
+.section-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:4px; }
+.section-title { font-family:'Playfair Display',serif; font-size:30px; font-style:italic; color:var(--cream); }
+.section-meta { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--cream-muted); margin-left:auto; white-space:nowrap; }
+
+/* Prose */
+.prose {
+  font-size: 19px;
+  line-height: 1.85;
+  color: var(--cream-dim);
+}
+.prose p { margin-bottom: 20px; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--cream); font-weight: 500; }
+.prose em { color: var(--cream-muted); font-style: italic; }
+
+/* Highlight quote */
+.pull-quote {
+  border-left: 2px solid var(--gold);
+  padding: 20px 32px;
+  margin: 36px 0;
+  background: rgba(201,168,76,0.03);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--cream);
+  line-height: 1.5;
+}
+.pull-quote cite {
+  display: block;
+  margin-top: 12px;
+  font-family: 'Cinzel', serif;
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+}
+
+/* Tech stack cards */
+.tech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 32px;
+}
+
+.tech-card {
+  background: linear-gradient(135deg, rgba(26,8,16,0.8), rgba(15,5,8,0.9));
+  border: 1px solid rgba(201,168,76,0.08);
+  padding: 28px 28px 24px;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.tech-card:hover { border-color: rgba(201,168,76,0.25); }
+.tech-card::before { content:''; position:absolute; top:10px; left:10px; width:14px; height:14px; border-top:1px solid rgba(201,168,76,0.2); border-left:1px solid rgba(201,168,76,0.2); transition:all 0.3s; }
+.tech-card:hover::before { width:18px; height:18px; border-color:var(--gold); }
+
+.tech-name {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.tech-desc {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--cream-muted);
+}
+
+/* Oracle flow diagram */
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+
+.flow-step {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  background: linear-gradient(135deg, rgba(20,8,12,0.9), rgba(12,5,8,0.95));
+  border: 1px solid rgba(201,168,76,0.07);
+  padding: 24px 28px;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.flow-step:hover { border-color: rgba(201,168,76,0.2); }
+
+.flow-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-style: italic;
+  color: var(--gold-pale);
+  line-height: 1;
+  min-width: 40px;
+  padding-top: 2px;
+}
+
+.flow-body { flex: 1; }
+.flow-title { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 8px; }
+.flow-desc { font-size: 16px; line-height: 1.65; color: var(--cream-muted); }
+.flow-desc strong { color: var(--cream-dim); }
+
+.flow-connector {
+  width: 1px;
+  height: 16px;
+  background: linear-gradient(180deg, var(--gold-pale), transparent);
+  margin: 0 auto;
+}
+
+/* Code block */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-left: 2px solid var(--gold-dim);
+  padding: 24px 28px;
+  margin: 24px 0;
+  position: relative;
+  overflow-x: auto;
+}
+.code-block::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -10px; left: 20px;
+  background: var(--black);
+  padding: 0 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+.code-block code {
+  font-family: 'Courier Prime', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--cream-dim);
+  white-space: pre;
+}
+.code-block .c-key { color: var(--gold); }
+.code-block .c-str { color: #a8c4a2; }
+.code-block .c-comment { color: var(--cream-muted); font-style: italic; }
+.code-block .c-val { color: #a0b8d0; }
+
+/* Site map */
+.sitemap {
+  background: linear-gradient(135deg, rgba(20,8,12,0.9), rgba(12,5,8,0.95));
+  border: 1px solid rgba(201,168,76,0.1);
+  padding: 36px 40px;
+  position: relative;
+}
+.sitemap::before { content:''; position:absolute; top:12px; left:12px; width:18px; height:18px; border-top:1px solid rgba(201,168,76,0.25); border-left:1px solid rgba(201,168,76,0.25); }
+.sitemap::after { content:''; position:absolute; bottom:12px; right:12px; width:18px; height:18px; border-bottom:1px solid rgba(201,168,76,0.25); border-right:1px solid rgba(201,168,76,0.25); }
+
+.map-root {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.map-root::after { content:''; flex:1; max-width:60px; height:1px; background:var(--gold-pale); }
+
+.map-file {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(201,168,76,0.04);
+}
+.map-file:last-child { border-bottom: none; }
+.map-indent { width: 24px; flex-shrink:0; display:flex; align-items:center; }
+.map-indent::before { content:'└'; color: var(--gold-pale); font-family: 'Courier Prime', monospace; font-size: 14px; }
+.map-filename { font-family: 'Courier Prime', monospace; font-size: 13px; color: var(--gold-dim); min-width: 180px; }
+.map-filedesc { font-size: 15px; color: var(--cream-muted); font-style: italic; }
+.map-status { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; padding:3px 8px; border:1px solid; margin-left:auto; white-space:nowrap; }
+.map-status.live { border-color:rgba(201,168,76,0.3); color:var(--gold-dim); }
+
+/* Version note */
+.version-note {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  background: rgba(201,168,76,0.03);
+  border: 1px solid rgba(201,168,76,0.08);
+  margin-top: 40px;
+}
+.version-badge { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold); padding:6px 14px; border:1px solid var(--gold-dim); white-space:nowrap; }
+.version-text { font-size:15px; color:var(--cream-muted); line-height:1.5; }
+
+/* Data source card */
+.data-card {
+  background: linear-gradient(135deg, rgba(26,8,16,0.7), rgba(15,5,8,0.85));
+  border: 1px solid rgba(201,168,76,0.08);
+  padding: 32px 36px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.data-card-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-dim); margin-bottom:10px; text-transform:uppercase; }
+.data-card-desc { font-size:16px; line-height:1.7; color:var(--cream-muted); }
+.data-file-list { margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; }
+.data-file { font-family:'Courier Prime',monospace; font-size:11px; padding:4px 10px; background:rgba(201,168,76,0.05); border:1px solid var(--gold-pale); color:var(--gold-dim); }
+
+@media(max-width:700px) {
+  main { padding:48px 24px 100px; }
+  .tech-grid { grid-template-columns:1fr; }
+  .nav { padding:12px 24px; }
+  .flow-step { flex-direction:column; gap:12px; }
+  .flow-num { font-size:28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">The Mezzanine</span>
+</nav>
+
+<header>
+  <div class="room-label">The Mezzanine</div>
+  <h1>Behind<em>the Curtain</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">How this cinema was built, and how the Oracle thinks.</p>
+</header>
+
+<main>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Overview</div>
+        <div class="section-title">What This Site Is</div>
+      </div>
+      <div class="section-meta">v1.0 &nbsp;·&nbsp; 2026</div>
+    </div>
+    <div class="prose">
+      <p>Adam's Cinema is a personal film site built entirely in raw HTML and CSS — no frameworks, no build tools, no dependencies. Every page is a standalone file that runs directly in a browser, which means it can be hosted for free on GitHub Pages and opened on any device without installing anything.</p>
+      <p>The site was designed and built in collaboration with <strong>Claude Sonnet</strong>, Anthropic's AI assistant, through an iterative conversation that evolved from a pair of batch files into a full multi-room cinema experience. The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate creative direction chosen to make the site feel like attending a high-end theatre rather than browsing a typical film blog.</p>
+    </div>
+
+    <div class="pull-quote">
+      Every design decision was made to feel like a place, not a page.
+      <cite>Design philosophy</cite>
+    </div>
+
+    <div class="prose">
+      <p>The site is entirely static. There are no servers, no databases, and no backend infrastructure. The one exception is the Movie Oracle, which makes a live call to the Anthropic API when a user submits their questionnaire.</p>
+    </div>
+  </div>
+
+  <!-- SITE STRUCTURE -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Architecture</div>
+        <div class="section-title">Site Structure</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The entire site lives in a single GitHub repository. Every page shares the same visual language — velvet textures, gold accents, Playfair Display typography, and the red carpet floor stripe — but each room has its own layout and purpose.</p>
+    </div>
+
+    <div class="sitemap">
+      <div class="map-root">Repository Root</div>
+
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">index.html</div>
+        <div class="map-filedesc">Grand Lobby — site homepage and navigation hub</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">adams-oracle.html</div>
+        <div class="map-filedesc">The Movie Oracle — 13-question AI recommendation tool</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">top25.html</div>
+        <div class="map-filedesc">Top 25 Lists — curated ranked film lists by genre and theme</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">collection.html</div>
+        <div class="map-filedesc">Adam's Collection — full Letterboxd-sourced film archive</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">staff.html</div>
+        <div class="map-filedesc">The Mezzanine — this page</div>
+        <div class="map-status live">Live</div>
+      </div>
+    </div>
+
+    <div class="version-note">
+      <div class="version-badge">Hosted On</div>
+      <div class="version-text">GitHub Pages — free static hosting. The site goes live at <strong style="color:var(--cream-dim)">yourusername.github.io/repo-name</strong> automatically when Pages is enabled on the repository's main branch.</div>
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Built With</div>
+        <div class="section-title">Technology Stack</div>
+      </div>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-name">HTML5 &amp; CSS3</div>
+        <div class="tech-desc">Every page is a single self-contained HTML file with embedded CSS. No preprocessors, no PostCSS, no build step. What you see in the file is exactly what runs in the browser.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Google Fonts</div>
+        <div class="tech-desc">Three typefaces define the visual identity: Playfair Display for display headings, EB Garamond for body text, and Cinzel for labels and structural elements. Courier Prime is used for code blocks on this page.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Anthropic API</div>
+        <div class="tech-desc">The Movie Oracle makes a direct POST request to Anthropic's <em>/v1/messages</em> endpoint using the claude-sonnet-4 model. The API call happens in the browser via the Fetch API when a user submits the questionnaire.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">GitHub Pages</div>
+        <div class="tech-desc">Free static site hosting provided by GitHub. The site is served directly from the repository's main branch with no configuration required beyond enabling Pages in the repository settings.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Letterboxd Export</div>
+        <div class="tech-desc">The Collection page was built from real data exported directly from a Letterboxd account — ratings, curated lists, watch history, and profile information — all parsed and rendered into the page at build time.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Vanilla JavaScript</div>
+        <div class="tech-desc">All interactivity — curtain animations, progress bars, option selection, API calls, and result rendering — is written in plain JavaScript with no libraries or frameworks. No jQuery, no React, nothing to install.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW THE ORACLE WORKS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">The Oracle</div>
+        <div class="section-title">How It Works</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The Movie Oracle is a 13-question questionnaire that collects enough signal about a viewer's current mood, taste, and preferences to make a single confident film recommendation. It was designed around the principle that <strong>13 high-signal questions outperform 30 mediocre ones</strong> — every question was chosen because it reveals something different about the person that cannot be inferred from the others.</p>
+    </div>
+
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <div class="flow-title">User Completes the Questionnaire</div>
+          <div class="flow-desc">The visitor answers 13 questions across four categories: taste anchors (a personal masterpiece and an overrated film), emotional state (weight tolerance, hope at the end), preferences (genre, themes, runtime, subtitles, pace), and open intent (what to avoid, what they want the film to do to them). The submit button remains locked until all 13 are answered.</div>
+        </div>
+      </div>
+
+      <div class="flow-connector"></div>
+
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <div class="flow-title">Answers Are Assembled Into a Prompt</div>
+          <div class="flow-desc">JavaScript reads every selected option and text input, maps option values back to their human-readable labels, and constructs a structured natural-language prompt. Scale answers are translated to descriptive phrases — for example, a score of 1 on the emotional weight scale becomes <strong>"Something Light"</strong> rather than just the number 1.</div>
+        </div>
+      </div>
+
+      <div class="flow-connector"></div>
+
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <div class="flow-title">The Prompt Is Sent to Claude</div>
+          <div class="flow-desc">The assembled prompt is sent via a POST request to Anthropic's <em>/v1/messages</em> endpoint using the <strong>claude-sonnet-4</strong> model. The Oracle's system instructions tell Claude to behave as a supremely confident film curator, recommend exactly one film with no hedging, and avoid obvious or generic choices in favour of genuine cinematic depth.</div>
+        </div>
+      </div>
+
+      <div class="flow-connector"></div>
+
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <div class="flow-title">Claude's Response Is Parsed and Rendered</div>
+          <div class="flow-desc">The response is expected in a structured format — <strong>TITLE</strong>, <strong>DIRECTED BY</strong>, <strong>WHY</strong>, and <strong>FIND IT</strong> — which is extracted using regular expressions. Each field is then injected into the result card that slides up on screen, styled as a theatre marquee reading <em>Now Showing</em>.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="code-block" data-label="Prompt Structure">
+      <code><span class="c-comment">// The Oracle's system persona sent with every request</span>
+<span class="c-key">const</span> prompt = <span class="c-str">`You are Adam's Movie Oracle — a world-class,
+supremely confident film curator. Recommend exactly
+ONE film. Be decisive and never hedge. Do not suggest
+the most obvious choice — dig deep into cinema history
+to find the perfect match.
+
+Format your response EXACTLY as:
+TITLE: [Film Title] ([Year])
+DIRECTED BY: [Director Name]
+WHY: [3-4 sentences explanation]
+FIND IT: [One sentence on streaming/rental]
+
+Their answers:
+1. Personal masterpiece: <span class="c-val">${fmt('1')}</span>
+2. Overrated film: <span class="c-val">${fmt('2')}</span>
+3. Emotional weight (1=light, 5=heavy): <span class="c-val">${fmt('3')}</span>
+...`</span></code>
+    </div>
+
+    <div class="prose">
+      <p>The questionnaire was deliberately reduced from an earlier 27-question version after testing showed the additional questions produced minimal improvement in recommendation quality. The 13 questions that survived were kept because each one reveals something the others cannot — the masterpiece and overrated film together triangulate taste far more efficiently than any genre checkbox.</p>
+    </div>
+  </div>
+
+  <!-- DATA SOURCES -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Data</div>
+        <div class="section-title">The Collection Page</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The Collection page was built entirely from a real Letterboxd data export. Letterboxd provides a complete export of your account under <strong>Settings → Data → Export Your Data</strong>, which arrives as a zip file containing several CSV files.</p>
+    </div>
+
+    <div class="data-card">
+      <div class="data-card-title">Files Used From Export</div>
+      <div class="data-card-desc">Seven CSV files were exported from Letterboxd. The following were used to build the Collection page:</div>
+      <div class="data-file-list">
+        <span class="data-file">ratings.csv</span>
+        <span class="data-file">profile.csv</span>
+        <span class="data-file">the-best-movies-i-have-ever-seen.csv</span>
+        <span class="data-file">fever-dream-films.csv</span>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The CSV data was parsed in Python to extract five-star films, 4.5-star films, curated list positions, profile information, and recent watch history. That data was then hardcoded directly into the HTML — meaning the page requires no live data connection and loads instantly.</p>
+      <p>To update the collection as new films are watched and rated, simply re-export from Letterboxd, re-parse the new CSV, and replace the relevant sections of <em>collection.html</em> in the GitHub repository.</p>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>
