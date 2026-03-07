@@ -77,58 +77,6 @@ h1 em { font-style:italic; color:var(--gold); display:block; }
 
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-/* TMDB Key Banner */
-.key-banner {
-  max-width: 1100px;
-  margin: 56px auto 0;
-  padding: 0 40px;
-  opacity: 0;
-  animation: fadeUp 0.6s ease forwards 0.9s;
-}
-.key-banner-inner {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 20px 28px;
-  background: linear-gradient(135deg, rgba(26,8,16,0.8), rgba(15,5,8,0.9));
-  border: 1px solid rgba(201,168,76,0.12);
-  border-left: 2px solid var(--gold-dim);
-}
-.key-banner-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; white-space:nowrap; }
-.key-banner-input {
-  flex: 1;
-  background: rgba(8,6,8,0.6);
-  border: none;
-  border-bottom: 1px solid rgba(201,168,76,0.3);
-  color: var(--cream-dim);
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  padding: 8px 12px;
-  outline: none;
-  transition: border-color 0.3s;
-  min-width: 0;
-}
-.key-banner-input:focus { border-bottom-color: var(--gold); }
-.key-banner-input::placeholder { color: var(--cream-muted); opacity: 0.5; }
-.key-banner-save {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: var(--gold-dim);
-  background: transparent;
-  border: 1px solid rgba(201,168,76,0.25);
-  padding: 8px 18px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-.key-banner-save:hover { border-color: var(--gold); color: var(--gold); }
-.key-banner-status { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); white-space:nowrap; }
-.key-banner-status.live { color: #6aaa6a; }
-.key-banner-hint { font-size:13px; color:var(--cream-muted); white-space:nowrap; }
-.key-banner-hint a { color:var(--gold-dim); }
-
 /* Main content */
 main {
   max-width: 1100px;
@@ -233,8 +181,6 @@ main {
   main { padding: 40px 20px 100px; }
   .list-grid { grid-template-columns: 1fr; }
   .list-card:nth-child(13) { grid-column: 1; }
-  .key-banner { padding: 0 20px; }
-  .key-banner-hint { display: none; }
   .nav { padding: 12px 24px; }
 }
 </style>
@@ -264,17 +210,6 @@ main {
   </div>
   <p class="header-sub">Definitive rankings. Argued without apology.</p>
 </header>
-
-<!-- TMDB Key Banner -->
-<div class="key-banner">
-  <div class="key-banner-inner">
-    <div class="key-banner-label">TMDB Key</div>
-    <input type="password" class="key-banner-input" id="tmdbKeyInput" placeholder="Paste your TMDB API key..." autocomplete="off" spellcheck="false">
-    <button class="key-banner-save" onclick="saveKey()">Save</button>
-    <span class="key-banner-status" id="keyStatus">Not set</span>
-    <span class="key-banner-hint">· Free at <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org</a> ·</span>
-  </div>
-</div>
 
 <main>
   <div class="list-grid">
@@ -385,31 +320,6 @@ main {
 
   </div>
 </main>
-
-<script>
-  // Check for saved key on load
-  const saved = sessionStorage.getItem('tmdb_key');
-  if (saved) {
-    document.getElementById('tmdbKeyInput').value = saved;
-    document.getElementById('keyStatus').textContent = 'Key active';
-    document.getElementById('keyStatus').classList.add('live');
-  }
-
-  function saveKey() {
-    const val = document.getElementById('tmdbKeyInput').value.trim();
-    if (!val) return;
-    sessionStorage.setItem('tmdb_key', val);
-    const status = document.getElementById('keyStatus');
-    status.textContent = 'Key saved ✓';
-    status.classList.add('live');
-    setTimeout(() => { status.textContent = 'Key active'; }, 2000);
-  }
-
-  // Allow Enter key to save
-  document.getElementById('tmdbKeyInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveKey();
-  });
-</script>
 
 </body>
 </html>
