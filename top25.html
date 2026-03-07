@@ -49,237 +49,192 @@ body::before {
 
 /* Nav */
 .nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  position: sticky; top: 0; z-index: 100;
   background: rgba(8,6,8,0.96);
   border-bottom: 1px solid var(--gold-pale);
   padding: 14px 48px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   backdrop-filter: blur(8px);
 }
-
-.nav-back {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--gold-dim);
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: color 0.3s;
-}
+.nav-back { display:flex; align-items:center; gap:12px; font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.3s; }
 .nav-back:hover { color: var(--gold); }
-.nav-back-line { width: 24px; height: 1px; background: currentColor; transition: width 0.3s; }
-.nav-back:hover .nav-back-line { width: 36px; }
-
-.nav-title {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  letter-spacing: 4px;
-  color: var(--cream-muted);
-  text-transform: uppercase;
-}
+.nav-back-line { width:24px; height:1px; background:currentColor; transition:width 0.3s; }
+.nav-back:hover .nav-back-line { width:36px; }
+.nav-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; color:var(--cream-muted); text-transform:uppercase; }
 
 /* Header */
-header {
-  text-align: center;
-  padding: 80px 20px 64px;
-  position: relative;
-}
+header { text-align:center; padding:80px 20px 64px; position:relative; }
+header::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:300px; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); }
 
-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 300px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
-}
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { font-family:'Playfair Display',serif; font-weight:400; font-size:clamp(44px,7vw,88px); line-height:0.95; color:var(--cream); opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+h1 em { font-style:italic; color:var(--gold); display:block; }
+.header-ornament { display:flex; align-items:center; justify-content:center; gap:14px; margin:28px auto; max-width:400px; opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.orn-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim)); }
+.orn-line.r { background:linear-gradient(270deg,transparent,var(--gold-dim)); }
+.orn-diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); }
+.header-sub { font-style:italic; font-size:18px; color:var(--cream-muted); opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
 
-.room-label {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  letter-spacing: 6px;
-  color: var(--gold-dim);
-  text-transform: uppercase;
-  margin-bottom: 20px;
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* TMDB Key Banner */
+.key-banner {
+  max-width: 1100px;
+  margin: 56px auto 0;
+  padding: 0 40px;
   opacity: 0;
-  animation: fadeUp 0.8s ease forwards 0.2s;
+  animation: fadeUp 0.6s ease forwards 0.9s;
 }
-
-h1 {
-  font-family: 'Playfair Display', serif;
-  font-weight: 400;
-  font-size: clamp(44px, 7vw, 88px);
-  line-height: 0.95;
-  color: var(--cream);
-  opacity: 0;
-  animation: fadeUp 0.8s ease forwards 0.4s;
-}
-
-h1 em { font-style: italic; color: var(--gold); display: block; }
-
-.header-ornament {
+.key-banner-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin: 28px auto;
-  max-width: 400px;
-  opacity: 0;
-  animation: fadeUp 0.8s ease forwards 0.6s;
+  gap: 24px;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, rgba(26,8,16,0.8), rgba(15,5,8,0.9));
+  border: 1px solid rgba(201,168,76,0.12);
+  border-left: 2px solid var(--gold-dim);
 }
-.orn-line { flex:1; height:1px; background: linear-gradient(90deg, transparent, var(--gold-dim)); }
-.orn-line.r { background: linear-gradient(270deg, transparent, var(--gold-dim)); }
-.orn-diamond { width:5px; height:5px; background: var(--gold); transform: rotate(45deg); }
-
-.header-sub {
-  font-style: italic;
-  font-size: 18px;
-  color: var(--cream-muted);
-  opacity: 0;
-  animation: fadeUp 0.8s ease forwards 0.8s;
+.key-banner-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; white-space:nowrap; }
+.key-banner-input {
+  flex: 1;
+  background: rgba(8,6,8,0.6);
+  border: none;
+  border-bottom: 1px solid rgba(201,168,76,0.3);
+  color: var(--cream-dim);
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.3s;
+  min-width: 0;
 }
-
-@keyframes fadeUp {
-  from { opacity:0; transform: translateY(16px); }
-  to { opacity:1; transform: translateY(0); }
+.key-banner-input:focus { border-bottom-color: var(--gold); }
+.key-banner-input::placeholder { color: var(--cream-muted); opacity: 0.5; }
+.key-banner-save {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  background: transparent;
+  border: 1px solid rgba(201,168,76,0.25);
+  padding: 8px 18px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
+.key-banner-save:hover { border-color: var(--gold); color: var(--gold); }
+.key-banner-status { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); white-space:nowrap; }
+.key-banner-status.live { color: #6aaa6a; }
+.key-banner-hint { font-size:13px; color:var(--cream-muted); white-space:nowrap; }
+.key-banner-hint a { color:var(--gold-dim); }
 
 /* Main content */
 main {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 72px 48px 120px;
+  padding: 56px 40px 120px;
   position: relative;
   z-index: 2;
 }
 
-/* List categories */
+/* List grid */
 .list-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  margin-bottom: 2px;
 }
 
 .list-card {
   background: linear-gradient(135deg, rgba(26,8,16,0.9), rgba(15,5,8,0.95));
   border: 1px solid rgba(201,168,76,0.08);
-  padding: 40px 36px;
+  padding: 36px 32px;
   position: relative;
-  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
   transition: border-color 0.3s;
   opacity: 0;
   animation: fadeUp 0.6s ease forwards;
 }
 
-.list-card:nth-child(1) { animation-delay: 0.3s; }
-.list-card:nth-child(2) { animation-delay: 0.4s; }
-.list-card:nth-child(3) { animation-delay: 0.5s; }
-.list-card:nth-child(4) { animation-delay: 0.6s; }
-.list-card:nth-child(5) { animation-delay: 0.7s; }
-.list-card:nth-child(6) { animation-delay: 0.8s; }
+.list-card:nth-child(1)  { animation-delay: 0.15s; }
+.list-card:nth-child(2)  { animation-delay: 0.20s; }
+.list-card:nth-child(3)  { animation-delay: 0.25s; }
+.list-card:nth-child(4)  { animation-delay: 0.30s; }
+.list-card:nth-child(5)  { animation-delay: 0.35s; }
+.list-card:nth-child(6)  { animation-delay: 0.40s; }
+.list-card:nth-child(7)  { animation-delay: 0.45s; }
+.list-card:nth-child(8)  { animation-delay: 0.50s; }
+.list-card:nth-child(9)  { animation-delay: 0.55s; }
+.list-card:nth-child(10) { animation-delay: 0.60s; }
+.list-card:nth-child(11) { animation-delay: 0.65s; }
+.list-card:nth-child(12) { animation-delay: 0.70s; }
+.list-card:nth-child(13) { animation-delay: 0.75s; grid-column: 1 / -1; }
 
 .list-card:hover { border-color: rgba(201,168,76,0.3); }
 
 .list-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+  content:'';
+  position:absolute; inset:0;
   background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.4s;
+  opacity:0; transition:opacity 0.4s;
 }
-.list-card:hover::before { opacity: 1; }
+.list-card:hover::before { opacity:1; }
 
+/* Corner brackets */
 .list-card::after {
-  content: '';
-  position: absolute;
-  top: 10px; left: 10px;
-  width: 16px; height: 16px;
-  border-top: 1px solid rgba(201,168,76,0.2);
-  border-left: 1px solid rgba(201,168,76,0.2);
-  transition: all 0.3s;
+  content:''; position:absolute; top:10px; left:10px;
+  width:16px; height:16px;
+  border-top:1px solid rgba(201,168,76,0.2);
+  border-left:1px solid rgba(201,168,76,0.2);
+  transition:all 0.3s;
 }
-.list-card:hover::after { width: 22px; height: 22px; border-color: var(--gold); }
+.list-card:hover::after { width:22px; height:22px; border-color:var(--gold); }
 
 .card-corner-br {
-  position: absolute;
-  bottom: 10px; right: 10px;
-  width: 16px; height: 16px;
-  border-bottom: 1px solid rgba(201,168,76,0.2);
-  border-right: 1px solid rgba(201,168,76,0.2);
-  transition: all 0.3s;
+  position:absolute; bottom:10px; right:10px;
+  width:16px; height:16px;
+  border-bottom:1px solid rgba(201,168,76,0.2);
+  border-right:1px solid rgba(201,168,76,0.2);
+  transition:all 0.3s; pointer-events:none;
 }
-.list-card:hover .card-corner-br { width: 22px; height: 22px; border-color: var(--gold); }
+.list-card:hover .card-corner-br { width:22px; height:22px; border-color:var(--gold); }
 
-.card-num {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 4px;
-  color: var(--gold-dim);
-  margin-bottom: 14px;
-}
+.card-num { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); margin-bottom:12px; }
 
 .card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(20px, 2.5vw, 28px);
-  font-weight: 400;
-  line-height: 1.2;
-  margin-bottom: 12px;
-  color: var(--cream);
-  transition: color 0.3s;
-}
-.list-card:hover .card-title { color: var(--cream); }
-
-.card-desc {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--cream-muted);
-  margin-bottom: 28px;
+  font-family:'Playfair Display',serif;
+  font-size:clamp(20px,2.2vw,26px);
+  font-weight:400;
+  line-height:1.2;
+  margin-bottom:10px;
+  color:var(--cream);
+  transition:color 0.3s;
 }
 
-.card-count {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: var(--gold-dim);
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.card-desc { font-size:14px; line-height:1.6; color:var(--cream-muted); margin-bottom:24px; }
+
+.card-enter {
+  display:flex; align-items:center; gap:10px;
+  font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px;
+  color:var(--gold-dim); text-transform:uppercase;
+  transition:all 0.3s;
 }
-.card-count::before { content:''; width: 20px; height:1px; background: var(--gold-pale); }
+.list-card:hover .card-enter { color:var(--gold); gap:14px; }
+.enter-line { width:20px; height:1px; background:currentColor; transition:width 0.3s; }
+.list-card:hover .enter-line { width:32px; }
 
-/* Coming soon state */
-.list-card.empty .card-title,
-.list-card.empty .card-desc { opacity: 0.45; }
+/* Full-width last card extras */
+.list-card.wide .card-title { font-size: clamp(22px, 2.8vw, 32px); font-style: italic; }
+.list-card.wide .card-desc { max-width: 600px; }
 
-.empty-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: 'Cinzel', serif;
-  font-size: 8px;
-  letter-spacing: 3px;
-  padding: 4px 10px;
-  border: 1px solid rgba(139,26,40,0.35);
-  color: var(--crimson-bright);
-  margin-bottom: 16px;
-}
-
-/* Full width card */
-.list-card.full { grid-column: 1 / -1; }
-
-@media (max-width: 640px) {
-  main { padding: 48px 24px 100px; }
+@media (max-width: 680px) {
+  main { padding: 40px 20px 100px; }
   .list-grid { grid-template-columns: 1fr; }
-  .list-card.full { grid-column: 1; }
+  .list-card:nth-child(13) { grid-column: 1; }
+  .key-banner { padding: 0 20px; }
+  .key-banner-hint { display: none; }
   .nav { padding: 12px 24px; }
 }
 </style>
@@ -310,65 +265,151 @@ main {
   <p class="header-sub">Definitive rankings. Argued without apology.</p>
 </header>
 
+<!-- TMDB Key Banner -->
+<div class="key-banner">
+  <div class="key-banner-inner">
+    <div class="key-banner-label">TMDB Key</div>
+    <input type="password" class="key-banner-input" id="tmdbKeyInput" placeholder="Paste your TMDB API key..." autocomplete="off" spellcheck="false">
+    <button class="key-banner-save" onclick="saveKey()">Save</button>
+    <span class="key-banner-status" id="keyStatus">Not set</span>
+    <span class="key-banner-hint">· Free at <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org</a> ·</span>
+  </div>
+</div>
+
 <main>
   <div class="list-grid">
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=horror">
       <div class="card-corner-br"></div>
       <div class="card-num">List 001</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">The 25 Greatest Films Ever Made</div>
-      <p class="card-desc">No genre limits, no era bias. The definitive list from across all of cinema history.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; All Eras</div>
-    </div>
+      <div class="card-title">25 Greatest Horror Films</div>
+      <p class="card-desc">Fear distilled into art. The films that refuse to let go long after the credits roll.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=thriller">
       <div class="card-corner-br"></div>
       <div class="card-num">List 002</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">25 Greatest War Films</div>
-      <p class="card-desc">From the trenches to the Pacific. Films that refuse to glorify what they depict.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; War</div>
-    </div>
+      <div class="card-title">25 Greatest Thrillers</div>
+      <p class="card-desc">Tension as a filmmaking language. The slow tightening of a knot you didn't know was there.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=comedy">
       <div class="card-corner-br"></div>
       <div class="card-num">List 003</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">25 Greatest Japanese Films</div>
-      <p class="card-desc">Kurosawa, Kobayashi, Ozu, Mizoguchi — and the names you haven't heard yet.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; Japanese Cinema</div>
-    </div>
+      <div class="card-title">25 Greatest Comedies</div>
+      <p class="card-desc">The hardest genre to perfect. The films that earn real laughter, not just smiles.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=satire">
       <div class="card-corner-br"></div>
       <div class="card-num">List 004</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">25 Greatest Crime Films</div>
-      <p class="card-desc">Noir, heist, gangster, and everything in between. Moral ambiguity at its finest.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; Crime & Noir</div>
-    </div>
+      <div class="card-title">25 Greatest Satires</div>
+      <p class="card-desc">Absurdity wielded as a weapon. Cinema that makes you laugh until you realize it's serious.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=action">
       <div class="card-corner-br"></div>
       <div class="card-num">List 005</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">25 Most Devastating Films</div>
-      <p class="card-desc">Films that leave a mark. Chosen for emotional impact above all else.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; Drama</div>
-    </div>
+      <div class="card-title">25 Greatest Action Films</div>
+      <p class="card-desc">Kinetic filmmaking at its absolute peak. Bodies, velocity, and consequence.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
-    <div class="list-card empty">
+    <a class="list-card" href="list.html?list=heist">
       <div class="card-corner-br"></div>
       <div class="card-num">List 006</div>
-      <div class="empty-badge">In Production</div>
-      <div class="card-title">25 Most Underrated Films</div>
-      <p class="card-desc">Buried gems, overlooked masterpieces, and films that time forgot too quickly.</p>
-      <div class="card-count">25 Films &nbsp;·&nbsp; All Genres</div>
-    </div>
+      <div class="card-title">25 Greatest Heist Films</div>
+      <p class="card-desc">The perfect plan. The inevitable unraveling. Cinema's most satisfying genre architecture.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=scifi">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 007</div>
+      <div class="card-title">25 Greatest Science Fiction Films</div>
+      <p class="card-desc">The future as a mirror held to the present. Ideas that linger decades after viewing.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=historical">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 008</div>
+      <div class="card-title">25 Greatest Historical Films</div>
+      <p class="card-desc">The past rendered vivid. Films that make you feel the weight of what actually happened.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=drama">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 009</div>
+      <div class="card-title">25 Greatest Dramas</div>
+      <p class="card-desc">Cinema stripped to its essential truth. Human beings under pressure, trying to endure.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=gangster">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 010</div>
+      <div class="card-title">25 Greatest Gangster Films</div>
+      <p class="card-desc">The rise, the empire, the fall. Moral ambiguity dressed in the finest clothes.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=war">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 011</div>
+      <div class="card-title">25 Greatest War Films</div>
+      <p class="card-desc">From the trenches to the Pacific. Films that refuse to glorify what they depict.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=romance">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 012</div>
+      <div class="card-title">25 Greatest Romance Films</div>
+      <p class="card-desc">Love under pressure. Cinema's oldest subject, still finding new ways to devastate.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card wide" href="list.html?list=surrealism">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 013</div>
+      <div class="card-title">25 Greatest Surrealist Films</div>
+      <p class="card-desc">Dreams made real. Logic made optional. The films that prove cinema can go places no other art form dares.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
 
   </div>
 </main>
+
+<script>
+  // Check for saved key on load
+  const saved = sessionStorage.getItem('tmdb_key');
+  if (saved) {
+    document.getElementById('tmdbKeyInput').value = saved;
+    document.getElementById('keyStatus').textContent = 'Key active';
+    document.getElementById('keyStatus').classList.add('live');
+  }
+
+  function saveKey() {
+    const val = document.getElementById('tmdbKeyInput').value.trim();
+    if (!val) return;
+    sessionStorage.setItem('tmdb_key', val);
+    const status = document.getElementById('keyStatus');
+    status.textContent = 'Key saved ✓';
+    status.classList.add('live');
+    setTimeout(() => { status.textContent = 'Key active'; }, 2000);
+  }
+
+  // Allow Enter key to save
+  document.getElementById('tmdbKeyInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveKey();
+  });
+</script>
 
 </body>
 </html>
