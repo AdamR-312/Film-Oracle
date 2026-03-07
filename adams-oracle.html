@@ -127,15 +127,7 @@ body::before {
 
 /* Gold curtain tie */
 .curtain-tie-left, .curtain-tie-right {
-  position: fixed;
-  top: 45%;
-  width: 32px;
-  height: 80px;
-  z-index: 901;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 40% 40%, var(--gold-bright), var(--gold-dim));
-  box-shadow: 0 0 20px rgba(201,168,76,0.4), inset 0 2px 4px rgba(255,255,255,0.2);
-  transition: opacity 0.5s ease 1.8s;
+  display: none;
 }
 
 .curtain-tie-left { left: calc(50% - 40px); }
@@ -837,7 +829,38 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
 </head>
 <body>
 
-<!-- Curtain -->
+<style>
+.top-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  background: rgba(8,6,8,0.85);
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  backdrop-filter: blur(8px);
+}
+.top-nav a {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.3s;
+}
+.top-nav a:hover { color: var(--gold); }
+.nav-arrow { width: 20px; height: 1px; background: currentColor; display: inline-block; transition: width 0.3s; }
+.top-nav a:hover .nav-arrow { width: 30px; }
+</style>
+<nav class="top-nav">
+  <a href="index.html"><span class="nav-arrow"></span> Grand Lobby</a>
+</nav>
+
 <div class="curtain-left" id="curtainL"></div>
 <div class="curtain-right" id="curtainR"></div>
 <div class="curtain-tie-left" id="tieL"></div>
@@ -1038,18 +1061,61 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
   <div class="question">
     <div class="q-header">
       <span class="q-num">XII</span>
-      <span class="q-text">Is there anything you explicitly do not want tonight?</span>
+      <span class="q-text">What era of cinema are you open to?</span>
     </div>
-    <p class="q-sub">Themes, tones, settings, or types of content to avoid entirely.</p>
-    <input class="text-input" type="text" placeholder="Anything off the table..." data-q="12" />
+    <p class="q-sub">Set a earliest and latest year. The Oracle will stay within this window.</p>
+    <div style="margin-left:46px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;">EARLIEST</div>
+        <select class="era-select" id="eraMin" data-q="era-min" style="background:rgba(26,8,16,0.8);border:1px solid rgba(201,168,76,0.2);color:var(--cream);font-family:'EB Garamond',serif;font-size:17px;padding:10px 16px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;min-width:110px;">
+          <option value="1920">1920s</option>
+          <option value="1930">1930s</option>
+          <option value="1940">1940s</option>
+          <option value="1950">1950s</option>
+          <option value="1960">1960s</option>
+          <option value="1970">1970s</option>
+          <option value="1980">1980s</option>
+          <option value="1990">1990s</option>
+          <option value="2000" selected>2000s</option>
+          <option value="2010">2010s</option>
+          <option value="2020">2020s</option>
+        </select>
+      </div>
+      <div style="color:var(--gold-dim);font-size:20px;">—</div>
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:8px;">LATEST</div>
+        <select class="era-select" id="eraMax" data-q="era-max" style="background:rgba(26,8,16,0.8);border:1px solid rgba(201,168,76,0.2);color:var(--cream);font-family:'EB Garamond',serif;font-size:17px;padding:10px 16px;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;min-width:110px;">
+          <option value="1920">1920s</option>
+          <option value="1930">1930s</option>
+          <option value="1940">1940s</option>
+          <option value="1950">1950s</option>
+          <option value="1960">1960s</option>
+          <option value="1970">1970s</option>
+          <option value="1980">1980s</option>
+          <option value="1990">1990s</option>
+          <option value="2000">2000s</option>
+          <option value="2010">2010s</option>
+          <option value="2020" selected>Present</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div class="question">
     <div class="q-header">
       <span class="q-num">XIII</span>
+      <span class="q-text">Is there anything you explicitly do not want tonight?</span>
+    </div>
+    <p class="q-sub">Themes, tones, settings, or types of content to avoid entirely.</p>
+    <input class="text-input" type="text" placeholder="Anything off the table..." data-q="13" />
+  </div>
+
+  <div class="question">
+    <div class="q-header">
+      <span class="q-num">XIV</span>
       <span class="q-text">In one sentence — what do you want this film to do to you?</span>
     </div>
-    <input class="text-input" type="text" placeholder="I want this film to..." data-q="13" />
+    <input class="text-input" type="text" placeholder="I want this film to..." data-q="14" />
   </div>
 
   <!-- Submit -->
@@ -1080,6 +1146,10 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
     <div id="result-director"></div>
     <div id="result-why"></div>
     <div id="result-find"></div>
+    <div style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid rgba(201,168,76,0.1);padding-top:22px;">
+      <a id="result-link" href="#" target="_blank" rel="noopener" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;border:1px solid rgba(201,168,76,0.2);padding:10px 18px;transition:all 0.3s;display:inline-block;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,0.2)';this.style.color='var(--gold-dim)'">More Info ↗</a>
+      <button onclick="alreadySeen()" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--cream-muted);text-transform:uppercase;border:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:none;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.3)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.color='var(--cream-muted)'">Already Seen It — Try Again</button>
+    </div>
   </div>
 
 </main>
@@ -1094,7 +1164,20 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
   }, 600);
 
   const answers = {};
-  const TOTAL = 13;
+  const TOTAL = 14;
+  const seenFilms = [];
+
+  // Era dropdowns — always considered answered (have defaults)
+  answers['era-min'] = '2000';
+  answers['era-max'] = '2020';
+  document.getElementById('eraMin').addEventListener('change', function() {
+    answers['era-min'] = this.value;
+    updateProgress();
+  });
+  document.getElementById('eraMax').addEventListener('change', function() {
+    answers['era-max'] = this.value;
+    updateProgress();
+  });
 
   // Option handlers
   document.querySelectorAll('.options').forEach(group => {
@@ -1139,10 +1222,10 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
     });
   });
 
-  const romanMap = {1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII',9:'IX',10:'X',11:'XI',12:'XII',13:'XIII'};
-
   function updateProgress() {
-    const done = Object.keys(answers).length;
+    // Count only the 14 required keys (era-min/max are always set)
+    const requiredKeys = ['1','2','3','4','5','6','7','8','9','10','11','13','14','era-min'];
+    const done = requiredKeys.filter(k => answers[k] !== undefined).length;
     const pct = Math.round((done / TOTAL) * 100);
     const fill = document.getElementById('progressFill');
     fill.style.width = pct + '%';
@@ -1161,6 +1244,14 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
       note.classList.remove('ready');
       note.textContent = `${remaining} question${remaining !== 1 ? 's' : ''} remain${remaining === 1 ? 's' : ''} before the Oracle may speak`;
     }
+  }
+
+  function alreadySeen() {
+    const title = document.getElementById('result-title').textContent;
+    if (title && title !== 'The Oracle is Silent' && title !== 'A Film Awaits') {
+      seenFilms.push(title);
+    }
+    consult();
   }
 
   async function consult() {
@@ -1188,7 +1279,15 @@ main::after { right: 0; background: linear-gradient(270deg, rgba(26,8,16,0.6), t
       return labels[v];
     };
 
+    const eraMin = answers['era-min'] || '1920';
+    const eraMax = answers['era-max'] || '2025';
+    const seenNote = seenFilms.length > 0
+      ? `\nIMPORTANT: The user has already seen these suggestions and wants something different: ${seenFilms.join(', ')}. Do NOT suggest any of these films.\n`
+      : '';
+
     const prompt = `You are Adam's Movie Oracle — a world-class, supremely confident film curator with encyclopaedic knowledge of cinema history. Based on the following questionnaire, recommend exactly ONE film. Be decisive, specific, and never hedge. Do not suggest the most obvious or generic choice — dig deep into cinema history to find the perfect match.
+${seenNote}
+IMPORTANT: The film MUST have been released between ${eraMin} and ${parseInt(eraMax) + 9}. Do not suggest any film outside this date range under any circumstances.
 
 After your recommendation, write 3–4 sentences explaining with precision why this specific film fits this person's answers. Reference specific details from their responses. Then add one concise sentence on where they might stream or rent it.
 
@@ -1210,8 +1309,9 @@ Their questionnaire answers:
 9. Protagonist type: ${fmt('9')}
 10. Hope at the end (1=leave in ruins, 5=send home happy): ${scaleDesc('10','no hope','hopeful')}
 11. Obscurity preference: ${fmt('11')}
-12. What to avoid: ${fmt('12')}
-13. What they want the film to do to them: ${fmt('13')}`;
+12. Era preference: ${eraMin}s to ${eraMax}s only
+13. What to avoid: ${fmt('13')}
+14. What they want the film to do to them: ${fmt('14')}`;
 
     try {
       const res = await fetch("https://oracle-proxy.adamrowe312.workers.dev", {
@@ -1225,6 +1325,7 @@ Their questionnaire answers:
       });
 
       const data = await res.json();
+      console.log('Worker response:', JSON.stringify(data));
       const text = data.content.map(i => i.text || '').join('\n');
 
       const titleM = text.match(/TITLE:\s*(.+)/);
@@ -1232,20 +1333,27 @@ Their questionnaire answers:
       const whyM = text.match(/WHY:\s*([\s\S]+?)(?=FIND IT:|$)/);
       const findM = text.match(/FIND IT:\s*([\s\S]+)/);
 
+      const titleText = titleM ? titleM[1].trim() : 'A Film Awaits';
+
       loading.style.display = 'none';
       result.style.display = 'block';
       result.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-      document.getElementById('result-title').textContent = titleM ? titleM[1].trim() : 'A Film Awaits';
+      document.getElementById('result-title').textContent = titleText;
       document.getElementById('result-director').textContent = dirM ? `Directed by ${dirM[1].trim()}` : '';
       document.getElementById('result-why').textContent = whyM ? whyM[1].trim() : text;
       document.getElementById('result-find').textContent = findM ? findM[1].trim() : '';
+
+      // Set Letterboxd search link
+      const searchTitle = encodeURIComponent(titleText.replace(/\s*\(\d{4}\)/, '').trim());
+      document.getElementById('result-link').href = `https://letterboxd.com/search/${searchTitle}/`;
 
     } catch(e) {
       loading.style.display = 'none';
       result.style.display = 'block';
       document.getElementById('result-title').textContent = 'The Oracle is Silent';
-      document.getElementById('result-why').textContent = 'Something went wrong. Please try again.';
+      document.getElementById('result-why').textContent = 'Error: ' + e.message;
+      console.error('Oracle error:', e);
       btn.disabled = false;
     }
   }
