@@ -45,7 +45,6 @@ body::before {
 .floor { position:fixed; bottom:0; left:0; right:0; height:6px; background:repeating-linear-gradient(90deg,var(--crimson) 0px,var(--crimson) 80px,var(--gold-pale) 80px,var(--gold-pale) 84px,var(--crimson) 84px); z-index:10; }
 .floor-glow { position:fixed; bottom:0; left:0; right:0; height:200px; background:linear-gradient(to top,rgba(107,15,26,0.1),transparent); pointer-events:none; z-index:1; }
 
-/* Nav */
 .nav {
   position:sticky; top:0; z-index:100;
   background:rgba(8,6,8,0.96);
@@ -60,7 +59,6 @@ body::before {
 .nav-back:hover .nav-back-line { width:36px; }
 .nav-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; color:var(--cream-muted); text-transform:uppercase; }
 
-/* Header */
 header {
   text-align:center; padding:80px 20px 64px; position:relative;
 }
@@ -77,7 +75,6 @@ h1 em { font-style:italic; color:var(--gold); display:block; }
 
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-/* Main layout */
 main {
   max-width: 900px;
   margin: 0 auto;
@@ -86,7 +83,6 @@ main {
   z-index: 2;
 }
 
-/* Section */
 .section {
   margin-bottom: 80px;
   opacity: 0;
@@ -109,7 +105,6 @@ main {
 .section-title { font-family:'Playfair Display',serif; font-size:30px; font-style:italic; color:var(--cream); }
 .section-meta { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--cream-muted); margin-left:auto; white-space:nowrap; }
 
-/* Prose */
 .prose {
   font-size: 19px;
   line-height: 1.85;
@@ -120,7 +115,6 @@ main {
 .prose strong { color: var(--cream); font-weight: 500; }
 .prose em { color: var(--cream-muted); font-style: italic; }
 
-/* Highlight quote */
 .pull-quote {
   border-left: 2px solid var(--gold);
   padding: 20px 32px;
@@ -142,7 +136,6 @@ main {
   color: var(--gold-dim);
 }
 
-/* Tech stack cards */
 .tech-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -175,12 +168,10 @@ main {
   color: var(--cream-muted);
 }
 
-/* Oracle flow diagram */
 .flow {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  position: relative;
 }
 
 .flow-step {
@@ -190,7 +181,6 @@ main {
   background: linear-gradient(135deg, rgba(20,8,12,0.9), rgba(12,5,8,0.95));
   border: 1px solid rgba(201,168,76,0.07);
   padding: 24px 28px;
-  position: relative;
   transition: border-color 0.3s;
 }
 .flow-step:hover { border-color: rgba(201,168,76,0.2); }
@@ -217,7 +207,6 @@ main {
   margin: 0 auto;
 }
 
-/* Code block */
 .code-block {
   background: var(--code-bg);
   border: 1px solid var(--code-border);
@@ -251,7 +240,6 @@ main {
 .code-block .c-comment { color: var(--cream-muted); font-style: italic; }
 .code-block .c-val { color: #a0b8d0; }
 
-/* Site map */
 .sitemap {
   background: linear-gradient(135deg, rgba(20,8,12,0.9), rgba(12,5,8,0.95));
   border: 1px solid rgba(201,168,76,0.1);
@@ -283,12 +271,11 @@ main {
 .map-file:last-child { border-bottom: none; }
 .map-indent { width: 24px; flex-shrink:0; display:flex; align-items:center; }
 .map-indent::before { content:'└'; color: var(--gold-pale); font-family: 'Courier Prime', monospace; font-size: 14px; }
-.map-filename { font-family: 'Courier Prime', monospace; font-size: 13px; color: var(--gold-dim); min-width: 180px; }
+.map-filename { font-family: 'Courier Prime', monospace; font-size: 13px; color: var(--gold-dim); min-width: 200px; }
 .map-filedesc { font-size: 15px; color: var(--cream-muted); font-style: italic; }
 .map-status { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; padding:3px 8px; border:1px solid; margin-left:auto; white-space:nowrap; }
 .map-status.live { border-color:rgba(201,168,76,0.3); color:var(--gold-dim); }
 
-/* Version note */
 .version-note {
   display: flex;
   align-items: center;
@@ -301,18 +288,33 @@ main {
 .version-badge { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold); padding:6px 14px; border:1px solid var(--gold-dim); white-space:nowrap; }
 .version-text { font-size:15px; color:var(--cream-muted); line-height:1.5; }
 
-/* Data source card */
 .data-card {
   background: linear-gradient(135deg, rgba(26,8,16,0.7), rgba(15,5,8,0.85));
   border: 1px solid rgba(201,168,76,0.08);
   padding: 32px 36px;
   margin-bottom: 20px;
-  position: relative;
 }
 .data-card-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-dim); margin-bottom:10px; text-transform:uppercase; }
 .data-card-desc { font-size:16px; line-height:1.7; color:var(--cream-muted); }
 .data-file-list { margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; }
 .data-file { font-family:'Courier Prime',monospace; font-size:11px; padding:4px 10px; background:rgba(201,168,76,0.05); border:1px solid var(--gold-pale); color:var(--gold-dim); }
+
+footer {
+  text-align: center;
+  padding: 48px 20px 80px;
+  border-top: 1px solid rgba(201,168,76,0.08);
+  position: relative;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 1px;
+  background: var(--gold-dim);
+}
+.footer-mark { font-family:'Playfair Display',serif; font-style:italic; font-size:22px; color:var(--gold-dim); margin-bottom:10px; }
+.footer-sub { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--cream-muted); opacity:0.5; }
 
 @media(max-width:700px) {
   main { padding:48px 24px 100px; }
@@ -356,22 +358,14 @@ main {
     <div class="section-head">
       <div>
         <div class="section-label">Overview</div>
-        <div class="section-title">What This Site Is</div>
+        <div class="section-title">What This Is</div>
       </div>
-      <div class="section-meta">v1.0 &nbsp;·&nbsp; 2026</div>
+      <div class="section-meta">v2.0 &nbsp;·&nbsp; 2026</div>
     </div>
     <div class="prose">
-      <p>Adam's Cinema is a personal film site built entirely in raw HTML and CSS — no frameworks, no build tools, no dependencies. Every page is a standalone file that runs directly in a browser, which means it can be hosted for free on GitHub Pages and opened on any device without installing anything.</p>
-      <p>The site was designed and built in collaboration with <strong>Claude Sonnet</strong>, Anthropic's AI assistant, through an iterative conversation that evolved from a pair of batch files into a full multi-room cinema experience. The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate creative direction chosen to make the site feel like attending a high-end theatre rather than browsing a typical film blog.</p>
-    </div>
-
-    <div class="pull-quote">
-      Every design decision was made to feel like a place, not a page.
-      <cite>Design philosophy</cite>
-    </div>
-
-    <div class="prose">
-      <p>The site is entirely static. There are no servers, no databases, and no backend infrastructure. The one exception is the Movie Oracle, which makes a live call to the Anthropic API when a user submits their questionnaire.</p>
+      <p>This is a static site — six HTML files, one GitHub repository, no build tools and nothing to install. Each page is self-contained CSS and JavaScript that runs directly in a browser. It's hosted on GitHub Pages and costs nothing to serve.</p>
+      <p>I built it in raw HTML and CSS because the project didn't need a framework. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The two places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and filmstrip banner</strong>, which pull live data from TMDB. Both of those are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
+      <p>The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate decision to make the site feel like a place rather than a page. Every design choice was made to support that.</p>
     </div>
   </div>
 
@@ -385,34 +379,46 @@ main {
     </div>
 
     <div class="prose">
-      <p>The entire site lives in a single GitHub repository. Every page shares the same visual language — velvet textures, gold accents, Playfair Display typography, and the red carpet floor stripe — but each room has its own layout and purpose.</p>
+      <p>Every page shares the same design system — CSS variables, typefaces, floor and ceiling strips, curtain animation — but each has its own layout and purpose. There's no shared stylesheet; each file is fully standalone so any page can be opened in isolation without broken references.</p>
     </div>
 
     <div class="sitemap">
-      <div class="map-root">Repository Root</div>
+      <div class="map-root">adamr-312.github.io/Film-Oracle</div>
 
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">index.html</div>
-        <div class="map-filedesc">Grand Lobby — site homepage and navigation hub</div>
+        <div class="map-filedesc">Grand Lobby — homepage, room navigation, live filmstrip banner</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">adams-oracle.html</div>
-        <div class="map-filedesc">The Movie Oracle — 13-question AI recommendation tool</div>
+        <div class="map-filedesc">The Movie Oracle — 14-question AI film recommendation tool</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">top25.html</div>
-        <div class="map-filedesc">Top 25 Lists — curated ranked film lists by genre and theme</div>
+        <div class="map-filedesc">Top 25 Lists — navigation hub for 14 genre list pages</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">list.html</div>
+        <div class="map-filedesc">Universal list page — URL-param driven, renders any of the 14 genre lists via TMDB</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">collection.html</div>
-        <div class="map-filedesc">Adam's Collection — full Letterboxd-sourced film archive</div>
+        <div class="map-filedesc">Adam's Collection — personal film archive sourced from Letterboxd export</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">indie.html</div>
+        <div class="map-filedesc">Indie &amp; Local Theatres — resources, forums, and state of independent exhibition</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
@@ -425,7 +431,7 @@ main {
 
     <div class="version-note">
       <div class="version-badge">Hosted On</div>
-      <div class="version-text">GitHub Pages — free static hosting. The site goes live at <strong style="color:var(--cream-dim)">yourusername.github.io/repo-name</strong> automatically when Pages is enabled on the repository's main branch.</div>
+      <div class="version-text">GitHub Pages — free static hosting served directly from the repository's main branch at <strong style="color:var(--cream-dim)">adamr-312.github.io/Film-Oracle</strong>.</div>
     </div>
   </div>
 
@@ -441,27 +447,35 @@ main {
     <div class="tech-grid">
       <div class="tech-card">
         <div class="tech-name">HTML5 &amp; CSS3</div>
-        <div class="tech-desc">Every page is a single self-contained HTML file with embedded CSS. No preprocessors, no PostCSS, no build step. What you see in the file is exactly what runs in the browser.</div>
-      </div>
-      <div class="tech-card">
-        <div class="tech-name">Google Fonts</div>
-        <div class="tech-desc">Three typefaces define the visual identity: Playfair Display for display headings, EB Garamond for body text, and Cinzel for labels and structural elements. Courier Prime is used for code blocks on this page.</div>
-      </div>
-      <div class="tech-card">
-        <div class="tech-name">Anthropic API</div>
-        <div class="tech-desc">The Movie Oracle makes a direct POST request to Anthropic's <em>/v1/messages</em> endpoint using the claude-sonnet-4 model. The API call happens in the browser via the Fetch API when a user submits the questionnaire.</div>
-      </div>
-      <div class="tech-card">
-        <div class="tech-name">GitHub Pages</div>
-        <div class="tech-desc">Free static site hosting provided by GitHub. The site is served directly from the repository's main branch with no configuration required beyond enabling Pages in the repository settings.</div>
-      </div>
-      <div class="tech-card">
-        <div class="tech-name">Letterboxd Export</div>
-        <div class="tech-desc">The Collection page was built from real data exported directly from a Letterboxd account — ratings, curated lists, watch history, and profile information — all parsed and rendered into the page at build time.</div>
+        <div class="tech-desc">Each page is a single self-contained HTML file with embedded CSS. No preprocessors, no build step. CSS custom properties handle the design system — colors, spacing, and typography are defined once in <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">:root</code> and referenced everywhere else.</div>
       </div>
       <div class="tech-card">
         <div class="tech-name">Vanilla JavaScript</div>
-        <div class="tech-desc">All interactivity — curtain animations, progress bars, option selection, API calls, and result rendering — is written in plain JavaScript with no libraries or frameworks. No jQuery, no React, nothing to install.</div>
+        <div class="tech-desc">All interactivity — curtain animations, progress tracking, option selection, API calls, and result rendering — is plain JS with no libraries. The fetch API handles all external requests. No jQuery, no bundler, nothing to install or update.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Anthropic API</div>
+        <div class="tech-desc">The Oracle POSTs to a Cloudflare Worker at <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">oracle-proxy.adamrowe312.workers.dev</code>, which holds the Anthropic API key as a Worker secret and forwards requests to Claude. The browser never touches the key directly — same pattern as the TMDB proxy, just a different Worker and endpoint.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">TMDB API</div>
+        <div class="tech-desc">The Top 25 lists and the Now in Theatres filmstrip both query The Movie Database's <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">discover/movie</code> and <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">movie/now_playing</code> endpoints. Requests are proxied through a Cloudflare Worker so the API key stays server-side.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Cloudflare Workers</div>
+        <div class="tech-desc">Two Workers handle API proxying. <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">tmdb-proxy.adamrowe312.workers.dev</code> sits in front of the TMDB API for the Top 25 lists and filmstrip. <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">oracle-proxy.adamrowe312.workers.dev</code> sits in front of the Anthropic API for the Oracle. Both validate the request origin, append the relevant API key from a Worker secret, and return responses with correct CORS headers. Both run on Cloudflare's free tier.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">GitHub Pages</div>
+        <div class="tech-desc">Free static hosting served directly from the repository's main branch. No CI pipeline, no deployment configuration — pushing a commit to main publishes it. The entire deploy process is a git push.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Google Fonts</div>
+        <div class="tech-desc">Three typefaces define the visual identity: Playfair Display for display headings, EB Garamond for body text, and Cinzel for labels and structural chrome. Courier Prime is used for code on this page.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Letterboxd Export</div>
+        <div class="tech-desc">The Collection page is built from a real Letterboxd data export — ratings, curated lists, watch history. The CSV data was parsed and hardcoded into the HTML, so the page needs no live data connection and loads instantly. To update it, re-export from Letterboxd and re-run the parse.</div>
       </div>
     </div>
   </div>
@@ -476,58 +490,50 @@ main {
     </div>
 
     <div class="prose">
-      <p>The Movie Oracle is a 13-question questionnaire that collects enough signal about a viewer's current mood, taste, and preferences to make a single confident film recommendation. It was designed around the principle that <strong>13 high-signal questions outperform 30 mediocre ones</strong> — every question was chosen because it reveals something different about the person that cannot be inferred from the others.</p>
+      <p>The Oracle is a 14-question form that collects enough signal about a viewer's current mood and taste to make a single confident film recommendation. The submit button stays locked until all 14 are answered — the recommendation is only as good as the input, and partial answers produce worse results than no answer at all.</p>
+      <p>The questions are split into four groups: <strong>taste anchors</strong> (a personal masterpiece and a film the user thinks is overrated — together these triangulate aesthetic position more efficiently than any genre checkbox), <strong>emotional state</strong> (weight tolerance, desired runtime, hope at the end), <strong>preferences</strong> (genre, themes, subtitles, pace, protagonist type, obscurity), and <strong>open-ended intent</strong> (what to avoid, what they want the film to do to them).</p>
     </div>
 
     <div class="flow">
-
       <div class="flow-step">
         <div class="flow-num">1</div>
         <div class="flow-body">
-          <div class="flow-title">User Completes the Questionnaire</div>
-          <div class="flow-desc">The visitor answers 13 questions across four categories: taste anchors (a personal masterpiece and an overrated film), emotional state (weight tolerance, hope at the end), preferences (genre, themes, runtime, subtitles, pace), and open intent (what to avoid, what they want the film to do to them). The submit button remains locked until all 13 are answered.</div>
+          <div class="flow-title">User Completes the Form</div>
+          <div class="flow-desc">14 questions across option grids, 1–5 scales, a runtime range input, and two free-text fields. JavaScript tracks answers in a plain object keyed by question number. The progress bar and remaining-question counter update on every interaction. The submit button enables only when all 14 keys are present.</div>
         </div>
       </div>
-
       <div class="flow-connector"></div>
-
       <div class="flow-step">
         <div class="flow-num">2</div>
         <div class="flow-body">
           <div class="flow-title">Answers Are Assembled Into a Prompt</div>
-          <div class="flow-desc">JavaScript reads every selected option and text input, maps option values back to their human-readable labels, and constructs a structured natural-language prompt. Scale answers are translated to descriptive phrases — for example, a score of 1 on the emotional weight scale becomes <strong>"Something Light"</strong> rather than just the number 1.</div>
+          <div class="flow-desc">JavaScript maps each answer value back to its human-readable label — <strong>option data-val attributes</strong> become their display text, scale numbers become descriptive phrases, and the runtime range becomes a plain sentence. The 14 answers are then interpolated into a structured prompt string.</div>
         </div>
       </div>
-
       <div class="flow-connector"></div>
-
       <div class="flow-step">
         <div class="flow-num">3</div>
         <div class="flow-body">
-          <div class="flow-title">The Prompt Is Sent to Claude</div>
-          <div class="flow-desc">The assembled prompt is sent via a POST request to Anthropic's <em>/v1/messages</em> endpoint using the <strong>claude-sonnet-4</strong> model. The Oracle's system instructions tell Claude to behave as a supremely confident film curator, recommend exactly one film with no hedging, and avoid obvious or generic choices in favour of genuine cinematic depth.</div>
+          <div class="flow-title">Prompt Is Sent via Cloudflare Worker</div>
+          <div class="flow-desc">The prompt POSTs to <strong>oracle-proxy.adamrowe312.workers.dev</strong> — a Cloudflare Worker that holds the Anthropic API key as a secret. The Worker forwards the request to Anthropic's <strong>/v1/messages</strong> endpoint using <strong>claude-sonnet-4-20250514</strong>, then returns the response to the browser. The API key never appears in client-side code.</div>
         </div>
       </div>
-
       <div class="flow-connector"></div>
-
       <div class="flow-step">
         <div class="flow-num">4</div>
         <div class="flow-body">
-          <div class="flow-title">Claude's Response Is Parsed and Rendered</div>
-          <div class="flow-desc">The response is expected in a structured format — <strong>TITLE</strong>, <strong>DIRECTED BY</strong>, <strong>WHY</strong>, and <strong>FIND IT</strong> — which is extracted using regular expressions. Each field is then injected into the result card that slides up on screen, styled as a theatre marquee reading <em>Now Showing</em>.</div>
+          <div class="flow-title">Response Is Parsed and Rendered</div>
+          <div class="flow-desc">The response is expected in a fixed format — <strong>TITLE</strong>, <strong>DIRECTED BY</strong>, <strong>WHY</strong>, <strong>FIND IT</strong> — extracted with regex. Each field is injected into the result card, which slides up styled as a theatre marquee. If the response deviates from the format, the raw text renders as a fallback.</div>
         </div>
       </div>
-
     </div>
 
     <div class="code-block" data-label="Prompt Structure">
-      <code><span class="c-comment">// The Oracle's system persona sent with every request</span>
+      <code><span class="c-comment">// System persona sent with every Oracle request</span>
 <span class="c-key">const</span> prompt = <span class="c-str">`You are Adam's Movie Oracle — a world-class,
 supremely confident film curator. Recommend exactly
 ONE film. Be decisive and never hedge. Do not suggest
-the most obvious choice — dig deep into cinema history
-to find the perfect match.
+the most obvious choice.
 
 Format your response EXACTLY as:
 TITLE: [Film Title] ([Year])
@@ -539,11 +545,37 @@ Their answers:
 1. Personal masterpiece: <span class="c-val">${fmt('1')}</span>
 2. Overrated film: <span class="c-val">${fmt('2')}</span>
 3. Emotional weight (1=light, 5=heavy): <span class="c-val">${fmt('3')}</span>
-...`</span></code>
+...
+14. What they want the film to do: <span class="c-val">${fmt('14')}</span>`</span></code>
+    </div>
+  </div>
+
+  <!-- TOP 25 LISTS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Top 25 Lists</div>
+        <div class="section-title">How the Lists Work</div>
+      </div>
     </div>
 
     <div class="prose">
-      <p>The questionnaire was deliberately reduced from an earlier 27-question version after testing showed the additional questions produced minimal improvement in recommendation quality. The 13 questions that survived were kept because each one reveals something the others cannot — the masterpiece and overrated film together triangulate taste far more efficiently than any genre checkbox.</p>
+      <p>There are 14 genre lists, all served by a single page — <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">list.html</code>. The page reads a <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">?list=</code> URL parameter on load, looks up the matching config object, and fires the appropriate TMDB query through the Cloudflare Worker. No separate HTML file per genre, no server-side routing.</p>
+      <p>Each list fetches four pages of TMDB results simultaneously — roughly 80 candidates — then filters out any film IDs already seen in the current session using <strong>sessionStorage</strong>. This prevents the same film appearing on multiple lists during a browsing session. The top 25 unique results are rendered. If there aren't 25 unique results after filtering, it falls back to the unfiltered set rather than showing a short list.</p>
+      <p>The filmstrip banner on the homepage uses the same Worker but hits the <strong>now_playing</strong> endpoint instead of discover. Poster images come directly from TMDB's image CDN, which requires no authentication.</p>
+    </div>
+
+    <div class="code-block" data-label="Cross-List Deduplication">
+      <code><span class="c-comment">// sessionStorage tracks seen movie IDs across list pages</span>
+<span class="c-key">function</span> <span class="c-val">getSeenIds</span>() {
+  <span class="c-key">return new</span> <span class="c-val">Set</span>(JSON.parse(
+    sessionStorage.getItem(<span class="c-str">'seen_movie_ids'</span>) || <span class="c-str">'[]'</span>
+  ));
+}
+
+<span class="c-comment">// Filter candidates, fall back if not enough unique results</span>
+<span class="c-key">const</span> unique = allMovies.filter(m => !seen.has(m.id));
+<span class="c-key">const</span> movies = (unique.length >= <span class="c-val">25</span> ? unique : allMovies).slice(<span class="c-val">0, 25</span>);</code>
     </div>
   </div>
 
@@ -557,12 +589,13 @@ Their answers:
     </div>
 
     <div class="prose">
-      <p>The Collection page was built entirely from a real Letterboxd data export. Letterboxd provides a complete export of your account under <strong>Settings → Data → Export Your Data</strong>, which arrives as a zip file containing several CSV files.</p>
+      <p>The Collection page doesn't make any API calls. It's built entirely from a Letterboxd data export — a zip of CSV files available under <strong>Settings → Data → Export Your Data</strong>. The relevant CSVs were parsed in Python to extract rated films, curated list positions, and profile data, then hardcoded directly into the HTML.</p>
+      <p>This means the page loads instantly and works with no network dependency beyond the initial page load. The tradeoff is that it needs to be manually rebuilt when the collection changes — re-export, re-parse, push the updated file.</p>
     </div>
 
     <div class="data-card">
-      <div class="data-card-title">Files Used From Export</div>
-      <div class="data-card-desc">Seven CSV files were exported from Letterboxd. The following were used to build the Collection page:</div>
+      <div class="data-card-title">Files Used From Letterboxd Export</div>
+      <div class="data-card-desc">Four of the seven exported CSVs were used to build the Collection page:</div>
       <div class="data-file-list">
         <span class="data-file">ratings.csv</span>
         <span class="data-file">profile.csv</span>
@@ -570,14 +603,14 @@ Their answers:
         <span class="data-file">fever-dream-films.csv</span>
       </div>
     </div>
-
-    <div class="prose">
-      <p>The CSV data was parsed in Python to extract five-star films, 4.5-star films, curated list positions, profile information, and recent watch history. That data was then hardcoded directly into the HTML — meaning the page requires no live data connection and loads instantly.</p>
-      <p>To update the collection as new films are watched and rated, simply re-export from Letterboxd, re-parse the new CSV, and replace the relevant sections of <em>collection.html</em> in the GitHub repository.</p>
-    </div>
   </div>
 
 </main>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;·&nbsp; No outside food or drink</div>
+</footer>
 
 </body>
 </html>
