@@ -378,12 +378,12 @@ const LISTS = {
     subtitle: 'The hardest genre to perfect.',
     endpoint: 'discover/movie?with_genres=35&sort_by=vote_average.desc&vote_count.gte=1500&include_adult=false',
   },
-  satire: {
+  psych_thriller: {
     num: 'List 004', label: 'Screening Room No. 2',
-    titleMain: 'Top 25', titleEm: 'Satires',
-    navTitle: 'Greatest Satires',
-    subtitle: 'Absurdity wielded as a weapon.',
-    endpoint: 'discover/movie?with_keywords=276130&sort_by=vote_average.desc&vote_count.gte=200&include_adult=false',
+    titleMain: 'Top 25', titleEm: 'Psychological Thrillers',
+    navTitle: 'Greatest Psych Thrillers',
+    subtitle: 'Minds unraveling under pressure. The danger is always inside.',
+    endpoint: 'discover/movie?with_genres=53,18&sort_by=vote_average.desc&vote_count.gte=1500&include_adult=false',
   },
   action: {
     num: 'List 005', label: 'Screening Room No. 2',
@@ -392,12 +392,12 @@ const LISTS = {
     subtitle: 'Kinetic filmmaking at its absolute peak.',
     endpoint: 'discover/movie?with_genres=28&sort_by=vote_average.desc&vote_count.gte=2000&include_adult=false',
   },
-  heist: {
+  mystery: {
     num: 'List 006', label: 'Screening Room No. 2',
-    titleMain: 'Top 25', titleEm: 'Heist Films',
-    navTitle: 'Greatest Heist',
-    subtitle: 'The perfect plan. The inevitable unraveling.',
-    endpoint: 'discover/movie?with_keywords=9663&sort_by=vote_average.desc&vote_count.gte=200&include_adult=false',
+    titleMain: 'Top 25', titleEm: 'Mystery & Neo-Noir',
+    navTitle: 'Greatest Mystery & Noir',
+    subtitle: 'Rain-slicked streets and unreliable narrators.',
+    endpoint: 'discover/movie?with_genres=9648&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
   },
   scifi: {
     num: 'List 007', label: 'Screening Room No. 2',
@@ -441,13 +441,20 @@ const LISTS = {
     subtitle: "Love under pressure. Cinema's oldest subject, still devastating.",
     endpoint: 'discover/movie?with_genres=10749&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
   },
-  surrealism: {
+  animated: {
     num: 'List 013', label: 'Screening Room No. 2',
-    titleMain: 'Top 25', titleEm: 'Surrealist Films',
-    navTitle: 'Greatest Surrealism',
-    subtitle: 'Dreams made real. Logic made optional.',
-    endpoint: 'discover/movie?with_keywords=4734&sort_by=vote_average.desc&vote_count.gte=100&include_adult=false',
-  }
+    titleMain: 'Top 25', titleEm: 'Animated Films',
+    navTitle: 'Greatest Animation',
+    subtitle: 'Animation as serious cinema. The medium that broke every rule.',
+    endpoint: 'discover/movie?with_genres=16&without_genres=10751&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  western: {
+    num: 'List 014', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Westerns',
+    navTitle: 'Greatest Westerns',
+    subtitle: "The American myth at its most elemental. Cinema's most morally serious genre.",
+    endpoint: 'discover/movie?with_genres=37&sort_by=vote_average.desc&vote_count.gte=500&include_adult=false',
+  },
 };
 
 // ── Cloudflare Worker URL ─────────────────────────
@@ -472,24 +479,51 @@ if (!config) {
   loadList();
 }
 
+// ── Cross-list deduplication via sessionStorage ───
+const SEEN_KEY = 'seen_movie_ids';
+
+function getSeenIds() {
+  try { return new Set(JSON.parse(sessionStorage.getItem(SEEN_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+
+function addSeenIds(ids) {
+  const seen = getSeenIds();
+  ids.forEach(id => seen.add(id));
+  sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+}
+
 // ── Fetch via Worker (no key needed client-side) ──
 async function loadList() {
-  const sep = config.endpoint.includes('?') ? '&' : '?';
+  const sep  = config.endpoint.includes('?') ? '&' : '?';
+  const seen = getSeenIds();
 
   try {
-    const [r1, r2] = await Promise.all([
-      fetch(`${WORKER}/${config.endpoint}${sep}page=1`),
-      fetch(`${WORKER}/${config.endpoint}${sep}page=2`)
-    ]);
+    // Fetch up to 4 pages so we have enough candidates after filtering dupes
+    const fetches = [1, 2, 3, 4].map(p =>
+      fetch(`${WORKER}/${config.endpoint}${sep}page=${p}`)
+    );
+    const responses = await Promise.all(fetches);
 
-    if (!r1.ok) throw new Error(`Worker error ${r1.status}`);
-    const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
-    const movies = [...(d1.results||[]), ...(d2.results||[])].slice(0, 25);
+    if (!responses[0].ok) throw new Error(`Worker error ${responses[0].status}`);
+
+    const pages = await Promise.all(responses.map(r => r.json()));
+    const allMovies = pages.flatMap(p => p.results || []);
+
+    // Filter out movies seen on other lists this session
+    const unique = allMovies.filter(m => !seen.has(m.id));
+
+    // Take top 25 from unique results, fall back to all if not enough
+    const movies = (unique.length >= 25 ? unique : allMovies).slice(0, 25);
 
     if (!movies.length) throw new Error('No results returned');
 
     document.getElementById('loadingState').style.display = 'none';
     renderList(movies);
+
+    // Record these IDs so they won't repeat on subsequent lists
+    addSeenIds(movies.map(m => m.id));
+
   } catch(err) {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('errorState').style.display = 'block';
