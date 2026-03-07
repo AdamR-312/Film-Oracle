@@ -1214,7 +1214,7 @@ Their questionnaire answers:
 13. What they want the film to do to them: ${fmt('13')}`;
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("oracle-proxy.adamrowe312.workers.dev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
