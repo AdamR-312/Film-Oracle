@@ -153,6 +153,12 @@ header {
   position: relative;
   text-align: center;
   padding: 80px 20px 64px;
+  overflow: hidden;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
 }
 
 .marquee-row {
@@ -569,6 +575,170 @@ footer::before {
   opacity: 0.5;
 }
 
+/* ===== FILMSTRIP (header background) ===== */
+/* SVG data URIs for sprocket strips */
+.filmstrip-bg {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0; right: 0;
+  height: 160px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right,
+    rgba(0,0,0,0.85) 0%,
+    rgba(0,0,0,0.85) 10%,
+    rgba(0,0,0,0.0)  38%,
+    rgba(0,0,0,0.0)  62%,
+    rgba(0,0,0,0.85) 90%,
+    rgba(0,0,0,0.85) 100%
+  );
+  mask-image: linear-gradient(to right,
+    rgba(0,0,0,0.85) 0%,
+    rgba(0,0,0,0.85) 10%,
+    rgba(0,0,0,0.0)  38%,
+    rgba(0,0,0,0.0)  62%,
+    rgba(0,0,0,0.85) 90%,
+    rgba(0,0,0,0.85) 100%
+  );
+}
+
+.filmstrip-bg.interactive { pointer-events: auto; }
+
+.filmstrip-scroll {
+  display: flex;
+  height: 100%;
+  animation: filmRoll 55s linear infinite;
+  will-change: transform;
+}
+
+.filmstrip-scroll:hover { animation-play-state: paused; }
+
+@keyframes filmRoll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* One film unit = sprockets top + frame area + sprockets bottom */
+.film-unit {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 130px;
+  background: #18140f;
+}
+
+/* Sprocket strips — SVG background tile */
+.film-sprocket {
+  height: 26px;
+  flex-shrink: 0;
+  background-color: #18140f;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Crect width='26' height='26' fill='%2318140f'/%3E%3Crect x='6' y='6' width='14' height='14' rx='3' fill='%230a0706'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 26px 26px;
+}
+
+/* Middle area: thin dark borders + image window + right divider */
+.film-middle {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+}
+
+.film-border-l {
+  width: 6px;
+  background: #18140f;
+  flex-shrink: 0;
+}
+
+.film-window {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0d0b09;
+  border-radius: 3px;
+}
+
+.film-window img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.5s, filter 0.4s;
+  filter: saturate(0.55) brightness(0.75) sepia(0.15);
+}
+
+.film-window img.loaded { opacity: 1; }
+
+.film-unit:hover .film-window img {
+  filter: saturate(0.9) brightness(0.95);
+}
+
+.film-no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(201,168,76,0.12);
+  font-size: 22px;
+}
+
+/* Title on hover */
+.film-title-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(5,3,2,0.92));
+  padding: 14px 6px 5px;
+  font-family: 'Cinzel', serif;
+  font-size: 6px;
+  letter-spacing: 1.5px;
+  color: var(--cream-dim);
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.film-unit:hover .film-title-overlay { opacity: 1; }
+
+/* Frame number edge code */
+.film-edge-code {
+  position: absolute;
+  top: 3px; left: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 5.5px;
+  color: rgba(201,168,76,0.18);
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+/* Right divider between frames */
+.film-divider {
+  width: 18px;
+  background: #18140f;
+  flex-shrink: 0;
+  border-left: 1px solid #0a0706;
+}
+
+/* "Now Playing" text watermark over the strip */
+.filmstrip-watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 6px;
+  color: rgba(201,168,76,0.22);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
 @media (max-width: 700px) {
   .rooms { grid-template-columns: 1fr; padding: 0 20px 80px; }
   .room.feature { grid-column: 1; }
@@ -576,6 +746,8 @@ footer::before {
   .room.feature .room-inner { padding: 48px 32px; }
   h1 { font-size: 52px; }
   .sconce { display: none; }
+  .film-unit { width: 100px; }
+  .filmstrip-bg { height: 120px; }
 }
 </style>
 </head>
@@ -602,29 +774,37 @@ footer::before {
 </div>
 
 <header>
-  <div class="marquee-row">
-    <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
-    <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
-    <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
-    <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
-    <div class="marquee-bulb"></div>
+  <!-- Filmstrip: Now in Theatres — sits behind header text -->
+  <div class="filmstrip-bg" id="filmstripBg">
+    <div class="filmstrip-scroll" id="filmstripTrack"></div>
+    <div class="filmstrip-watermark">Now in Theatres</div>
   </div>
 
-  <div class="established">Est. MMXXVI &nbsp;·&nbsp; Grand Lobby</div>
-
-  <h1>Adam's<em>Cinema</em></h1>
-
-  <div class="header-rule">
-    <div class="rule-line"></div>
-    <div class="rule-center">
-      <div class="diamond"></div>
-      <div class="diamond hollow"></div>
-      <div class="diamond"></div>
+  <div class="header-content">
+    <div class="marquee-row">
+      <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
+      <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
+      <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
+      <div class="marquee-bulb"></div><div class="marquee-bulb"></div>
+      <div class="marquee-bulb"></div>
     </div>
-    <div class="rule-line r"></div>
-  </div>
 
-  <p class="header-sub">Select your screening room and take your seat.</p>
+    <div class="established">Est. MMXXVI &nbsp;·&nbsp; Grand Lobby</div>
+
+    <h1>Adam's<em>Cinema</em></h1>
+
+    <div class="header-rule">
+      <div class="rule-line"></div>
+      <div class="rule-center">
+        <div class="diamond"></div>
+        <div class="diamond hollow"></div>
+        <div class="diamond"></div>
+      </div>
+      <div class="rule-line r"></div>
+    </div>
+
+    <p class="header-sub">Select your screening room and take your seat.</p>
+  </div>
 </header>
 
 <div class="lobby-entry">
@@ -694,20 +874,36 @@ footer::before {
     </div>
   </a>
 
-  <!-- Staff / About -->
-  <a class="room" href="staff.html" style="grid-column: 1 / -1;">
+  <!-- Indie & Local Theatres -->
+  <a class="room" href="indie.html">
     <div class="room-corner-br"></div>
-    <div class="room-inner" style="flex-direction: row; align-items: center; gap: 48px; padding: 40px 52px;">
-      <div style="flex:1">
-        <div class="room-num">The Mezzanine</div>
-        <div class="room-status showing" style="margin-bottom:16px">
-          <div class="status-dot pulse"></div>
-          Open
-        </div>
-        <div class="room-title" style="font-size:clamp(22px,2.5vw,32px); margin-bottom: 10px;">Staff &amp; About This Cinema</div>
-        <p class="room-desc" style="margin-bottom:0">Who built this place, why it exists, and what it stands for.</p>
+    <div class="room-inner">
+      <div class="room-num">Screening Room No. 4</div>
+      <div class="room-status showing">
+        <div class="status-dot pulse"></div>
+        Now Showing
       </div>
-      <div class="room-enter" style="flex-shrink:0">
+      <div class="room-title">Indie & Local Theatres</div>
+      <p class="room-desc">The small screens that keep cinema alive. The health of independent theatre, where to find them, and why they still matter.</p>
+      <div class="room-enter">
+        <div class="enter-line"></div>
+        Explore
+      </div>
+    </div>
+  </a>
+
+  <!-- Staff / About -->
+  <a class="room" href="staff.html">
+    <div class="room-corner-br"></div>
+    <div class="room-inner">
+      <div class="room-num">The Mezzanine</div>
+      <div class="room-status showing">
+        <div class="status-dot pulse"></div>
+        Open
+      </div>
+      <div class="room-title">Staff &amp; About This Cinema</div>
+      <p class="room-desc">Who built this place, why it exists, and what it stands for.</p>
+      <div class="room-enter">
         <div class="enter-line"></div>
         Meet the Staff
       </div>
@@ -722,10 +918,79 @@ footer::before {
 </footer>
 
 <script>
+  // Curtain open
   setTimeout(() => {
     document.getElementById('curtainL').classList.add('open');
     document.getElementById('curtainR').classList.add('open');
   }, 400);
+
+  // ── Filmstrip: Now in Theatres ─────────────────────────────────────────
+  const WORKER = 'https://tmdb-proxy.adamrowe312.workers.dev';
+  const POSTER_BASE = 'https://image.tmdb.org/t/p/w185';
+
+  function buildUnit(m, index) {
+    const posterHtml = m && m.poster_path
+      ? `<img src="${POSTER_BASE}${m.poster_path}" alt="${m ? m.title : ''}" loading="lazy">`
+      : `<div class="film-no-poster">✦</div>`;
+
+    const title = m ? m.title : '';
+    const edgeCode = m ? String(index + 1).padStart(2, '0') : '—';
+
+    return `<div class="film-unit">
+      <div class="film-sprocket"></div>
+      <div class="film-middle">
+        <div class="film-border-l"></div>
+        <div class="film-window">
+          <div class="film-edge-code">${edgeCode}</div>
+          ${posterHtml}
+          <div class="film-title-overlay">${title}</div>
+        </div>
+        <div class="film-divider"></div>
+      </div>
+      <div class="film-sprocket"></div>
+    </div>`;
+  }
+
+  async function loadFilmstrip() {
+    const track = document.getElementById('filmstripTrack');
+    const bg    = document.getElementById('filmstripBg');
+
+    try {
+      const res   = await fetch(`${WORKER}/movie/now_playing?region=US&page=1`);
+      const data  = await res.json();
+      const films = (data.results || []).filter(m => m.title);
+
+      if (!films.length) throw new Error('empty');
+
+      // Build units, duplicate for seamless loop
+      const units = films.map((m, i) => buildUnit(m, i)).join('');
+      track.innerHTML = units + units;
+
+      // Lazy-load poster images with fade in
+      track.querySelectorAll('img').forEach(img => {
+        img.addEventListener('load', () => img.classList.add('loaded'));
+        img.addEventListener('error', () => {
+          img.parentElement.innerHTML = '<div class="film-no-poster">✦</div>';
+        });
+      });
+
+      // Enable hover interaction on the strip
+      bg.classList.add('interactive');
+
+      // Set scroll duration based on content width
+      const unitWidth = 130; // film-unit width
+      const totalWidth = films.length * unitWidth;
+      const duration = Math.max(35, totalWidth / 4.5);
+      track.style.animationDuration = `${duration}s`;
+
+    } catch(e) {
+      // Fallback: empty frame placeholders
+      const placeholders = Array.from({length: 18}, (_, i) => buildUnit(null, i)).join('');
+      track.innerHTML = placeholders + placeholders;
+    }
+  }
+
+  loadFilmstrip();
 </script>
 </body>
 </html>
