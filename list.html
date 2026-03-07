@@ -289,7 +289,6 @@ h1 em { font-style:italic; color:var(--gold); display:block; }
   .film-info { padding:14px 16px; }
   .film-title { font-size:15px; }
   .film-overview { -webkit-line-clamp:1; }
-  .key-modal { padding:36px 28px; }
 }
 </style>
 </head>
@@ -451,6 +450,9 @@ const LISTS = {
   }
 };
 
+// ── Cloudflare Worker URL ─────────────────────────
+const WORKER = 'https://tmdb-proxy.adamrowe312.workers.dev';
+
 // ── Init ──────────────────────────────────────────
 const params  = new URLSearchParams(location.search);
 const listKey = params.get('list') || 'horror';
@@ -460,7 +462,6 @@ if (!config) {
   document.getElementById('pageTitle').textContent = 'List Not Found';
   document.getElementById('loadingState').style.display = 'none';
 } else {
-  // Populate header
   document.title = `${config.titleEm} — Adam's Cinema`;
   document.getElementById('listLabel').textContent = config.label;
   document.getElementById('pageTitle').childNodes[0].textContent = config.titleMain + ' ';
@@ -468,22 +469,20 @@ if (!config) {
   document.getElementById('navTitle').textContent = config.navTitle;
   document.getElementById('headerSub').textContent = config.subtitle;
 
-  // Load immediately — key is held by the Cloudflare Worker
   loadList();
 }
 
-// ── Fetch & Render ────────────────────────────────
+// ── Fetch via Worker (no key needed client-side) ──
 async function loadList() {
-  const base = 'https://tmdb-proxy.adamrowe312.workers.dev/';
-  const sep  = config.endpoint.includes('?') ? '&' : '?';
+  const sep = config.endpoint.includes('?') ? '&' : '?';
 
   try {
     const [r1, r2] = await Promise.all([
-      fetch(`${base}${config.endpoint}${sep}page=1`),
-      fetch(`${base}${config.endpoint}${sep}page=2`)
+      fetch(`${WORKER}/${config.endpoint}${sep}page=1`),
+      fetch(`${WORKER}/${config.endpoint}${sep}page=2`)
     ]);
 
-    if (!r1.ok) throw new Error(`TMDB error ${r1.status}`);
+    if (!r1.ok) throw new Error(`Worker error ${r1.status}`);
     const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
     const movies = [...(d1.results||[]), ...(d2.results||[])].slice(0, 25);
 
@@ -495,9 +494,7 @@ async function loadList() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('errorState').style.display = 'block';
     document.getElementById('errorDesc').textContent =
-      err.message.includes('401')
-        ? 'Invalid API key. Please go back and enter a valid TMDB key.'
-        : `Something went wrong: ${err.message}`;
+      `Something went wrong loading this list. Please try again. (${err.message})`;
   }
 }
 
