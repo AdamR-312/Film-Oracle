@@ -116,11 +116,12 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
         <div class="section-label">Overview</div>
         <div class="section-title">What This Is</div>
       </div>
-      <div class="section-meta">v2.0 &nbsp;·&nbsp; 2026</div>
+      <div class="section-meta">v3.0 &nbsp;·&nbsp; 2026</div>
     </div>
     <div class="prose">
       <p>This is a static site — six HTML files, one GitHub repository, no build tools and nothing to install. Each page is self-contained CSS and JavaScript that runs directly in a browser. It's hosted on GitHub Pages and costs nothing to serve.</p>
-      <p>I built it in raw HTML and CSS because the project didn't need a framework. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The two places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and filmstrip banner</strong>, which pull live data from TMDB. Both of those are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
+      <p>I built it in raw HTML and CSS because the project didn't need a framework. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and dual filmstrip banner</strong>, which pull live data from TMDB. All external API calls are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
+      <p>The Grand Lobby header carries two animated filmstrips — one along the top edge showing films trending this week, one along the bottom showing upcoming releases. Hovering any poster pauses the strip and surfaces a popup card showing the film's title, year, rating, and synopsis. The Oracle result card similarly uses TMDB to load a hi-res poster, a backdrop image, a YouTube trailer link, and a grid of three similar films — all fetched in a single batched API call using <strong>append_to_response</strong>.</p>
       <p>The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate decision to make the site feel like a place rather than a page. Every design choice was made to support that.</p>
     </div>
   </div>
@@ -183,6 +184,18 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
         <div class="map-filedesc">The Mezzanine — this page</div>
         <div class="map-status live">Live</div>
       </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">style.css</div>
+        <div class="map-filedesc">Shared design system — CSS variables, curtains, ceiling/floor, theatre rails, nav</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
+        <div class="map-filename">CLAUDE.md</div>
+        <div class="map-filedesc">Repository guide for Claude Code — architecture, external services, conventions</div>
+        <div class="map-status live">Repo</div>
+      </div>
     </div>
 
     <div class="version-note">
@@ -215,7 +228,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       </div>
       <div class="tech-card">
         <div class="tech-name">TMDB API</div>
-        <div class="tech-desc">The Top 25 lists and the Now in Theatres filmstrip both query The Movie Database's <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">discover/movie</code> and <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">movie/now_playing</code> endpoints. Requests are proxied through a Cloudflare Worker so the API key stays server-side.</div>
+        <div class="tech-desc">Used across three features. The Top 25 lists query <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">discover/movie</code>. The lobby filmstrips hit <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">trending/movie/week</code> and <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">movie/upcoming</code>. The Oracle enriches its result with <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">search/movie</code>, then fetches details, videos, and recommendations via <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">append_to_response</code> in a single call. All requests are proxied through the Cloudflare Worker.</div>
       </div>
       <div class="tech-card">
         <div class="tech-name">Cloudflare Workers</div>
@@ -282,6 +295,14 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
           <div class="flow-desc">The response is expected in a fixed format — <strong>TITLE</strong>, <strong>DIRECTED BY</strong>, <strong>WHY</strong>, <strong>FIND IT</strong> — extracted with regex. Each field is injected into the result card, which slides up styled as a theatre marquee. If the response deviates from the format, the raw text renders as a fallback.</div>
         </div>
       </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <div class="flow-title">TMDB Enriches the Result Card</div>
+          <div class="flow-desc">The film title is sent to TMDB's <strong>search/movie</strong> endpoint to find its ID. Two parallel requests then fire: <strong>movie/{id}?append_to_response=videos</strong> (fetches details and trailer in one call) and <strong>movie/{id}/recommendations</strong>. The result card is updated with a <strong>w342 poster</strong>, a backdrop image behind the card, a <strong>▶ Trailer</strong> button linking to YouTube if an official trailer exists, and a three-card grid of similar films below.</div>
+        </div>
+      </div>
     </div>
 
     <div class="code-block" data-label="Prompt Structure">
@@ -318,7 +339,7 @@ Their answers:
     <div class="prose">
       <p>There are 14 genre lists, all served by a single page — <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">list.html</code>. The page reads a <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">?list=</code> URL parameter on load, looks up the matching config object, and fires the appropriate TMDB query through the Cloudflare Worker. No separate HTML file per genre, no server-side routing.</p>
       <p>Each list fetches four pages of TMDB results simultaneously — roughly 80 candidates — then filters out any film IDs already seen in the current session using <strong>sessionStorage</strong>. This prevents the same film appearing on multiple lists during a browsing session. The top 25 unique results are rendered. If there aren't 25 unique results after filtering, it falls back to the unfiltered set rather than showing a short list.</p>
-      <p>The filmstrip banner on the homepage uses the same Worker but hits the <strong>now_playing</strong> endpoint instead of discover. Poster images come directly from TMDB's image CDN, which requires no authentication.</p>
+      <p>The Grand Lobby carries two filmstrips built the same way. The top strip fetches <strong>trending/movie/week</strong> and scrolls left; the bottom strip fetches <strong>movie/upcoming</strong> and scrolls right in the opposite direction. Both strips pause when the cursor enters them. Hovering an individual poster triggers a JS-positioned popup card showing the film's poster image, title, year, star rating, and a synopsis excerpt — the popup opens downward for the top strip and upward for the bottom. Poster images on all strips come directly from TMDB's image CDN, which requires no authentication.</p>
     </div>
 
     <div class="code-block" data-label="Cross-List Deduplication">
