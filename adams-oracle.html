@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adam's Movie Oracle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
 body { cursor:default; }
@@ -65,7 +68,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
 .options { display:grid; gap:8px; margin-left:46px; }
 .options.cols-2 { grid-template-columns:1fr 1fr; }
 .options.cols-3 { grid-template-columns:1fr 1fr 1fr; }
-.opt { display:flex; align-items:center; gap:14px; padding:13px 18px; border:1px solid rgba(201,168,76,0.12); cursor:pointer; transition:all 0.25s ease; background:rgba(26,8,16,0.3); position:relative; overflow:hidden; user-select:none; }
+.opt { display:flex; align-items:center; gap:14px; padding:13px 18px; min-height:44px; border:1px solid rgba(201,168,76,0.12); cursor:pointer; transition:all 0.25s ease; background:rgba(26,8,16,0.3); position:relative; overflow:hidden; user-select:none; }
 .opt::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,168,76,0.05),transparent); opacity:0; transition:opacity 0.25s; }
 .opt:hover { border-color:rgba(201,168,76,0.35); background:rgba(42,16,24,0.6); }
 .opt:hover::before { opacity:1; }
@@ -174,14 +177,14 @@ h1 .gold { color:var(--gold); font-style:italic; }
 <main>
 
   <div class="question">
-    <div class="q-header"><span class="q-num">I</span><span class="q-text">Name a film you consider a personal masterpiece.</span></div>
+    <div class="q-header"><span class="q-num">I</span><span class="q-text" id="ql-1">Name a film you consider a personal masterpiece.</span></div>
     <p class="q-sub">Not what you think you should say — what genuinely moves you.</p>
-    <input class="text-input" type="text" placeholder="Title..." data-q="1" />
+    <input class="text-input" type="text" placeholder="Title..." data-q="1" aria-labelledby="ql-1" />
   </div>
 
   <div class="question">
-    <div class="q-header"><span class="q-num">II</span><span class="q-text">Name a highly regarded film you found overrated.</span></div>
-    <input class="text-input" type="text" placeholder="Title..." data-q="2" />
+    <div class="q-header"><span class="q-num">II</span><span class="q-text" id="ql-2">Name a highly regarded film you found overrated.</span></div>
+    <input class="text-input" type="text" placeholder="Title..." data-q="2" aria-labelledby="ql-2" />
   </div>
 
   <div class="question">
@@ -238,12 +241,12 @@ h1 .gold { color:var(--gold); font-style:italic; }
     <div class="runtime-range" data-q="6">
       <div class="range-field">
         <div class="range-label">Minimum</div>
-        <input class="range-input" type="number" min="0" max="400" placeholder="e.g. 90" data-role="min" />
+        <input class="range-input" type="number" min="0" max="400" placeholder="e.g. 90" data-role="min" aria-label="Minimum runtime in minutes" />
       </div>
       <div class="range-sep">—</div>
       <div class="range-field">
         <div class="range-label">Maximum</div>
-        <input class="range-input" type="number" min="0" max="600" placeholder="e.g. 150" data-role="max" />
+        <input class="range-input" type="number" min="0" max="600" placeholder="e.g. 150" data-role="max" aria-label="Maximum runtime in minutes" />
       </div>
       <div class="range-unit-label">minutes</div>
     </div>
@@ -338,14 +341,14 @@ h1 .gold { color:var(--gold); font-style:italic; }
   </div>
 
   <div class="question">
-    <div class="q-header"><span class="q-num">XIII</span><span class="q-text">Is there anything you explicitly do not want tonight?</span></div>
+    <div class="q-header"><span class="q-num">XIII</span><span class="q-text" id="ql-13">Is there anything you explicitly do not want tonight?</span></div>
     <p class="q-sub">Themes, tones, settings, or types of content to avoid entirely.</p>
-    <input class="text-input" type="text" placeholder="Anything off the table..." data-q="13" />
+    <input class="text-input" type="text" placeholder="Anything off the table..." data-q="13" aria-labelledby="ql-13" />
   </div>
 
   <div class="question">
-    <div class="q-header"><span class="q-num">XIV</span><span class="q-text">In one sentence — what do you want this film to do to you?</span></div>
-    <input class="text-input" type="text" placeholder="I want this film to..." data-q="14" />
+    <div class="q-header"><span class="q-num">XIV</span><span class="q-text" id="ql-14">In one sentence — what do you want this film to do to you?</span></div>
+    <input class="text-input" type="text" placeholder="I want this film to..." data-q="14" aria-labelledby="ql-14" />
   </div>
 
   <div class="submit-stage">
@@ -588,6 +591,55 @@ Their questionnaire answers:
       btn.disabled = false;
     }
   }
+
+  // ── Accessibility: ARIA roles, keyboard nav, focus management ────────────
+  (function() {
+    // Option groups: roles + keyboard + aria-checked
+    document.querySelectorAll('.options').forEach(group => {
+      const multi = group.dataset.multi === 'true';
+      group.setAttribute('role', multi ? 'group' : 'radiogroup');
+      group.querySelectorAll('.opt').forEach(opt => {
+        opt.setAttribute('role', multi ? 'checkbox' : 'radio');
+        opt.setAttribute('tabindex', '0');
+        opt.setAttribute('aria-checked', 'false');
+        opt.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); opt.click(); }
+        });
+        new MutationObserver(() => {
+          opt.setAttribute('aria-checked', opt.classList.contains('selected') ? 'true' : 'false');
+        }).observe(opt, { attributes: true, attributeFilter: ['class'] });
+      });
+    });
+
+    // Scale buttons: aria-pressed + descriptive aria-label from adjacent labels
+    document.querySelectorAll('.scale-wrap').forEach(wrap => {
+      const lo = wrap.querySelector('.scale-label:not(.right)')?.textContent.replace(/\s+/g,' ').trim() || '';
+      const hi = wrap.querySelector('.scale-label.right')?.textContent.replace(/\s+/g,' ').trim() || '';
+      wrap.querySelectorAll('.scale-btn').forEach((btn, i) => {
+        const val = btn.dataset.val;
+        let label = val;
+        if (i === 0) label = `${val} — ${lo}`;
+        if (i === 4) label = `${val} — ${hi}`;
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('aria-pressed', 'false');
+        btn.addEventListener('click', function() {
+          wrap.querySelectorAll('.scale-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+          this.setAttribute('aria-pressed', 'true');
+        });
+      });
+    });
+
+    // Era selects
+    const eraMin = document.getElementById('eraMin');
+    const eraMax = document.getElementById('eraMax');
+    if (eraMin) eraMin.setAttribute('aria-label', 'Earliest year');
+    if (eraMax) eraMax.setAttribute('aria-label', 'Latest year');
+  })();
 </script>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;&middot;&nbsp; No outside food or drink</div>
+</footer>
 </body>
 </html>
