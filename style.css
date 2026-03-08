@@ -300,6 +300,70 @@ footer::before {
   .nav { padding: 12px 24px; }
 }
 
+/* ── THEATRE RAILS ─────────────────────────────────── */
+/* Three effects unified: scroll rope + parallax glow + section pulse */
+.theatre-rail {
+  position: fixed;
+  top: 0; bottom: 0;
+  width: 18px;
+  z-index: 6;
+  pointer-events: none;
+}
+.rail-l { left: 3px; }
+.rail-r { right: 3px; }
+
+/* Rope track (faint vertical line) */
+.rail-track {
+  position: absolute;
+  top: 80px; bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  background: rgba(201,168,76,0.06);
+}
+
+/* Scroll fill (grows as you scroll) */
+.rail-fill {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 0%;
+  background: linear-gradient(180deg, rgba(201,168,76,0.45), rgba(201,168,76,0.08));
+  transition: height 0.12s linear;
+}
+
+/* Diamond scroll marker */
+.rail-marker {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%) rotate(45deg);
+  width: 5px; height: 5px;
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(201,168,76,0.8), 0 0 12px rgba(201,168,76,0.25);
+  top: 80px;
+  transition: top 0.12s linear, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* Section pulse: diamond brightens when a section scrolls into view */
+.rail-marker.pulsing {
+  box-shadow: 0 0 14px rgba(201,168,76,1), 0 0 28px rgba(201,168,76,0.55);
+  transform: translateX(-50%) translateY(-50%) rotate(45deg) scale(1.9);
+}
+
+/* Parallax spotlight glow (drifts behind the rope at different speed) */
+.rail-glow {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 300px;
+  background: radial-gradient(ellipse at center, rgba(201,168,76,0.042) 0%, transparent 60%);
+  top: 20%;
+  transition: top 0.4s ease;
+}
+
+@media (max-width: 900px) {
+  .theatre-rail { display: none; }
+}
+
 /* ── REDUCED MOTION ───────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

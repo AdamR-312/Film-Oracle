@@ -199,5 +199,67 @@ main { max-width:1100px; margin:0 auto; padding:56px 40px 120px; position:relati
   <div class="footer-mark">Adam's Cinema</div>
   <div class="footer-sub">Please silence your devices &nbsp;&middot;&nbsp; No outside food or drink</div>
 </footer>
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+
+  // Create left and right rails
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+
+  var fills   = document.querySelectorAll('.rail-fill');
+  var markers = document.querySelectorAll('.rail-marker');
+  var glows   = document.querySelectorAll('.rail-glow');
+
+  // ── Scroll rope + parallax glow ──────────────────
+  function update(){
+    var s = window.scrollY;
+    var maxS = document.documentElement.scrollHeight - window.innerHeight;
+    var p = maxS > 0 ? Math.min(1, Math.max(0, s / maxS)) : 0;
+
+    // Rope fill
+    fills.forEach(function(f){ f.style.height = (p*100)+'%'; });
+
+    // Diamond marker (80px padding from top/bottom)
+    var trackH = window.innerHeight - 160;
+    var markerY = 80 + p * trackH;
+    markers.forEach(function(m){ m.style.top = markerY+'px'; });
+
+    // Parallax glow — left leads, right slightly offset
+    if(glows[0]) glows[0].style.top = (8  + p*54)+'%';
+    if(glows[1]) glows[1].style.top = (22 + p*52)+'%';
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  update();
+
+  // ── Section pulse (IntersectionObserver) ─────────
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        markers.forEach(function(m){
+          m.classList.add('pulsing');
+          setTimeout(function(){ m.classList.remove('pulsing'); }, 500);
+        });
+      }
+    });
+  },{threshold:0.2, rootMargin:'-8% 0px -8% 0px'});
+
+  document.querySelectorAll(
+    'h1, h2, .section-head, .section-head-title, .list-meta, header'
+  ).forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
 </body>
 </html>
