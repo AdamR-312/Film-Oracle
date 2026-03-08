@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 25 — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+header { padding:72px 20px 52px; }
+h1 { font-size:clamp(36px,6vw,72px); opacity:0; animation:fadeUp 0.7s ease forwards 0.2s; }
+.list-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:18px; opacity:0; animation:fadeUp 0.7s ease forwards 0.1s; }
+.header-ornament { opacity:0; animation:fadeUp 0.7s ease forwards 0.3s; }
+.header-sub { font-size:17px; opacity:0; animation:fadeUp 0.7s ease forwards 0.4s; }
+#loadingState { text-align:center; padding:80px 20px; position:relative; z-index:2; }
+#errorState { display:none; text-align:center; padding:80px 20px; position:relative; z-index:2; }
+.error-title { font-family:'Playfair Display',serif; font-size:32px; font-style:italic; color:var(--cream); margin-bottom:12px; }
+.error-desc { font-size:16px; color:var(--cream-muted); line-height:1.6; margin-bottom:24px; }
+.error-retry { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); background:transparent; border:1px solid rgba(201,168,76,0.25); padding:10px 24px; cursor:pointer; text-transform:uppercase; transition:all 0.3s; }
+.error-retry:hover { border-color:var(--gold); color:var(--gold); }
+#filmsList { display:none; max-width:1000px; margin:0 auto; padding:56px 40px 120px; position:relative; z-index:2; }
+.list-meta { display:flex; align-items:center; gap:20px; margin-bottom:40px; padding-bottom:20px; border-bottom:1px solid rgba(201,168,76,0.08); }
+.list-meta-count { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); }
+.list-meta-source { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--cream-muted); opacity:0.5; margin-left:auto; }
+.film-row { display:flex; align-items:stretch; background:linear-gradient(135deg,rgba(20,8,12,0.85),rgba(12,5,8,0.92)); border:1px solid rgba(201,168,76,0.06); margin-bottom:2px; position:relative; transition:border-color 0.3s; opacity:0; animation:fadeUp 0.5s ease forwards; text-decoration:none; color:inherit; }
+.film-row:hover { border-color:rgba(201,168,76,0.25); }
+.film-row::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 0% 50%,rgba(201,168,76,0.03),transparent 60%); opacity:0; transition:opacity 0.3s; }
+.film-row:hover::before { opacity:1; }
+.film-rank { display:flex; align-items:center; justify-content:center; width:72px; flex-shrink:0; border-right:1px solid rgba(201,168,76,0.06); padding:20px 0; }
+.rank-num { font-family:'Playfair Display',serif; font-style:italic; font-size:36px; color:var(--gold-pale); line-height:1; transition:color 0.3s; }
+.film-row:hover .rank-num { color:var(--gold-dim); }
+.film-poster { width:72px; flex-shrink:0; border-right:1px solid rgba(201,168,76,0.06); overflow:hidden; background:rgba(26,8,16,0.5); display:flex; align-items:center; justify-content:center; }
+.film-poster img { width:100%; height:100%; object-fit:cover; display:block; transition:opacity 0.4s; opacity:0; }
+.film-poster img.loaded { opacity:1; }
+.film-poster-placeholder { display:flex; align-items:center; justify-content:center; width:72px; height:100%; min-height:100px; color:var(--gold-pale); font-size:22px; }
+.film-info { flex:1; padding:18px 24px; display:flex; flex-direction:column; justify-content:center; gap:6px; }
+.film-title-row { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+.film-title { font-family:'Playfair Display',serif; font-size:clamp(16px,2vw,20px); font-weight:400; color:var(--cream); line-height:1.1; transition:color 0.3s; }
+.film-year { font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; color:var(--cream-muted); white-space:nowrap; }
+.film-genres { display:flex; flex-wrap:wrap; gap:5px; }
+.film-genre { font-family:'Cinzel',serif; font-size:7px; letter-spacing:2px; padding:3px 8px; border:1px solid rgba(201,168,76,0.12); color:var(--gold-dim); text-transform:uppercase; }
+.film-overview { font-size:13px; line-height:1.55; color:var(--cream-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; max-width:600px; }
+.film-score { display:flex; flex-direction:column; align-items:center; justify-content:center; width:72px; flex-shrink:0; padding:12px; border-left:1px solid rgba(201,168,76,0.06); gap:4px; }
+.score-val { font-family:'Playfair Display',serif; font-size:22px; font-style:italic; color:var(--gold-dim); line-height:1; transition:color 0.3s; }
+.film-row:hover .score-val { color:var(--gold); }
+.score-star { font-size:10px; color:var(--gold-pale); }
+.score-label { font-family:'Cinzel',serif; font-size:7px; letter-spacing:2px; color:var(--cream-muted); opacity:0.6; }
+.film-row:nth-child(1){animation-delay:0.05s} .film-row:nth-child(2){animation-delay:0.08s} .film-row:nth-child(3){animation-delay:0.11s} .film-row:nth-child(4){animation-delay:0.14s} .film-row:nth-child(5){animation-delay:0.17s} .film-row:nth-child(6){animation-delay:0.20s} .film-row:nth-child(7){animation-delay:0.23s} .film-row:nth-child(8){animation-delay:0.26s} .film-row:nth-child(9){animation-delay:0.29s} .film-row:nth-child(10){animation-delay:0.32s} .film-row:nth-child(11){animation-delay:0.35s} .film-row:nth-child(12){animation-delay:0.38s} .film-row:nth-child(13){animation-delay:0.41s} .film-row:nth-child(14){animation-delay:0.44s} .film-row:nth-child(15){animation-delay:0.47s} .film-row:nth-child(16){animation-delay:0.50s} .film-row:nth-child(17){animation-delay:0.53s} .film-row:nth-child(18){animation-delay:0.56s} .film-row:nth-child(19){animation-delay:0.59s} .film-row:nth-child(20){animation-delay:0.62s} .film-row:nth-child(21){animation-delay:0.65s} .film-row:nth-child(22){animation-delay:0.68s} .film-row:nth-child(23){animation-delay:0.71s} .film-row:nth-child(24){animation-delay:0.74s} .film-row:nth-child(25){animation-delay:0.77s}
+@media (max-width:680px) {
+  #filmsList { padding:40px 20px 100px; }
+  .film-rank { width:48px; }
+  .rank-num { font-size:24px; }
+  .film-poster { width:56px; }
+  .film-score { width:56px; }
+  .score-val { font-size:17px; }
+  .film-info { padding:14px 16px; }
+  .film-title { font-size:15px; }
+  .film-overview { -webkit-line-clamp:1; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="top25.html">
+    <div class="nav-back-line"></div>
+    Top 25 Lists
+  </a>
+  <span class="nav-title" id="navTitle">Loading…</span>
+</nav>
+
+<header>
+  <div class="list-label" id="listLabel">Screening Room No. 2</div>
+  <h1 id="pageTitle">Top 25<em id="pageTitleEm">…</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub" id="headerSub"></p>
+</header>
+
+<!-- Loading -->
+<div id="loadingState">
+  <div class="loading-lights">
+    <div class="loading-bulb"></div>
+    <div class="loading-bulb"></div>
+    <div class="loading-bulb"></div>
+    <div class="loading-bulb"></div>
+    <div class="loading-bulb"></div>
+  </div>
+  <div class="loading-text">The Oracle Consults the Archives</div>
+</div>
+
+<!-- Error -->
+<div id="errorState">
+  <div class="error-title">The Projection Faltered</div>
+  <p class="error-desc" id="errorDesc">Something went wrong fetching this list from TMDB. Check your API key or try again.</p>
+  <button class="error-retry" onclick="location.reload()">Try Again</button>
+</div>
+
+<!-- Films -->
+<div id="filmsList">
+  <div class="list-meta">
+    <span class="list-meta-count" id="listCount"></span>
+    <span class="list-meta-source">Source: TMDB · Sorted by rating</span>
+  </div>
+</div>
+
+<script>
+// ── Genre ID → Name ────────────────────────────────
+const GENRE_MAP = {
+  28:'Action', 12:'Adventure', 16:'Animation', 35:'Comedy',
+  80:'Crime', 99:'Documentary', 18:'Drama', 10751:'Family',
+  14:'Fantasy', 36:'History', 27:'Horror', 10402:'Music',
+  9648:'Mystery', 10749:'Romance', 878:'Sci-Fi', 10770:'TV Movie',
+  53:'Thriller', 10752:'War', 37:'Western'
+};
+
+// ── List configurations ────────────────────────────
+const LISTS = {
+  horror: {
+    num: 'List 001', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Horror Films',
+    navTitle: 'Greatest Horror',
+    subtitle: 'Fear distilled into art. The films that don\'t let go.',
+    endpoint: 'discover/movie?with_genres=27&sort_by=vote_average.desc&vote_count.gte=1500&include_adult=false',
+  },
+  thriller: {
+    num: 'List 002', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Thrillers',
+    navTitle: 'Greatest Thrillers',
+    subtitle: 'Tension as a filmmaking language.',
+    endpoint: 'discover/movie?with_genres=53&sort_by=vote_average.desc&vote_count.gte=2000&include_adult=false',
+  },
+  comedy: {
+    num: 'List 003', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Comedies',
+    navTitle: 'Greatest Comedies',
+    subtitle: 'The hardest genre to perfect.',
+    endpoint: 'discover/movie?with_genres=35&sort_by=vote_average.desc&vote_count.gte=1500&include_adult=false',
+  },
+  psych_thriller: {
+    num: 'List 004', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Psychological Thrillers',
+    navTitle: 'Greatest Psych Thrillers',
+    subtitle: 'Minds unraveling under pressure. The danger is always inside.',
+    endpoint: 'discover/movie?with_genres=53,18&sort_by=vote_average.desc&vote_count.gte=1500&include_adult=false',
+  },
+  action: {
+    num: 'List 005', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Action Films',
+    navTitle: 'Greatest Action',
+    subtitle: 'Kinetic filmmaking at its absolute peak.',
+    endpoint: 'discover/movie?with_genres=28&sort_by=vote_average.desc&vote_count.gte=2000&include_adult=false',
+  },
+  mystery: {
+    num: 'List 006', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Mystery & Neo-Noir',
+    navTitle: 'Greatest Mystery & Noir',
+    subtitle: 'Rain-slicked streets and unreliable narrators.',
+    endpoint: 'discover/movie?with_genres=9648&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  scifi: {
+    num: 'List 007', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Science Fiction',
+    navTitle: 'Greatest Sci-Fi',
+    subtitle: 'The future as a mirror held to the present.',
+    endpoint: 'discover/movie?with_genres=878&sort_by=vote_average.desc&vote_count.gte=2000&include_adult=false',
+  },
+  historical: {
+    num: 'List 008', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Historical Films',
+    navTitle: 'Greatest Historical',
+    subtitle: 'The past rendered vivid.',
+    endpoint: 'discover/movie?with_genres=36&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  drama: {
+    num: 'List 009', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Dramas',
+    navTitle: 'Greatest Dramas',
+    subtitle: 'Cinema stripped to its essential truth.',
+    endpoint: 'discover/movie?with_genres=18&without_genres=28,27,878,35&sort_by=vote_average.desc&vote_count.gte=3000&include_adult=false',
+  },
+  gangster: {
+    num: 'List 010', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Gangster Films',
+    navTitle: 'Greatest Gangster',
+    subtitle: 'The rise, the empire, the fall.',
+    endpoint: 'discover/movie?with_keywords=1562&sort_by=vote_average.desc&vote_count.gte=200&include_adult=false',
+  },
+  war: {
+    num: 'List 011', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'War Films',
+    navTitle: 'Greatest War',
+    subtitle: 'Films that refuse to glorify what they depict.',
+    endpoint: 'discover/movie?with_genres=10752&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  romance: {
+    num: 'List 012', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Romance Films',
+    navTitle: 'Greatest Romance',
+    subtitle: "Love under pressure. Cinema's oldest subject, still devastating.",
+    endpoint: 'discover/movie?with_genres=10749&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  animated: {
+    num: 'List 013', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Animated Films',
+    navTitle: 'Greatest Animation',
+    subtitle: 'Animation as serious cinema. The medium that broke every rule.',
+    endpoint: 'discover/movie?with_genres=16&without_genres=10751&sort_by=vote_average.desc&vote_count.gte=1000&include_adult=false',
+  },
+  western: {
+    num: 'List 014', label: 'Screening Room No. 2',
+    titleMain: 'Top 25', titleEm: 'Westerns',
+    navTitle: 'Greatest Westerns',
+    subtitle: "The American myth at its most elemental. Cinema's most morally serious genre.",
+    endpoint: 'discover/movie?with_genres=37&sort_by=vote_average.desc&vote_count.gte=500&include_adult=false',
+  },
+};
+
+// ── Cloudflare Worker URL ─────────────────────────
+const WORKER = 'https://tmdb-proxy.adamrowe312.workers.dev';
+
+// ── Init ──────────────────────────────────────────
+const params  = new URLSearchParams(location.search);
+const listKey = params.get('list') || 'horror';
+const config  = LISTS[listKey];
+
+if (!config) {
+  document.getElementById('pageTitle').textContent = 'List Not Found';
+  document.getElementById('loadingState').style.display = 'none';
+} else {
+  document.title = `${config.titleEm} — Adam's Cinema`;
+  document.getElementById('listLabel').textContent = config.label;
+  document.getElementById('pageTitle').childNodes[0].textContent = config.titleMain + ' ';
+  document.getElementById('pageTitleEm').textContent = config.titleEm;
+  document.getElementById('navTitle').textContent = config.navTitle;
+  document.getElementById('headerSub').textContent = config.subtitle;
+
+  loadList();
+}
+
+// ── Cross-list deduplication via sessionStorage ───
+const SEEN_KEY = 'seen_movie_ids';
+
+function getSeenIds() {
+  try { return new Set(JSON.parse(sessionStorage.getItem(SEEN_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+
+function addSeenIds(ids) {
+  const seen = getSeenIds();
+  ids.forEach(id => seen.add(id));
+  sessionStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+}
+
+// ── Fetch via Worker (no key needed client-side) ──
+async function loadList() {
+  const sep  = config.endpoint.includes('?') ? '&' : '?';
+  const seen = getSeenIds();
+
+  try {
+    // Fetch up to 4 pages so we have enough candidates after filtering dupes
+    const fetches = [1, 2, 3, 4].map(p =>
+      fetch(`${WORKER}/${config.endpoint}${sep}page=${p}`)
+    );
+    const responses = await Promise.all(fetches);
+
+    if (!responses[0].ok) throw new Error(`Worker error ${responses[0].status}`);
+
+    const pages = await Promise.all(responses.map(r => r.json()));
+    const allMovies = pages.flatMap(p => p.results || []);
+
+    // Filter out movies seen on other lists this session
+    const unique = allMovies.filter(m => !seen.has(m.id));
+
+    // Take top 25 from unique results, fall back to all if not enough
+    const movies = (unique.length >= 25 ? unique : allMovies).slice(0, 25);
+
+    if (!movies.length) throw new Error('No results returned');
+
+    document.getElementById('loadingState').style.display = 'none';
+    renderList(movies);
+
+    // Record these IDs so they won't repeat on subsequent lists
+    addSeenIds(movies.map(m => m.id));
+
+  } catch(err) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    document.getElementById('errorDesc').textContent =
+      `Something went wrong loading this list. Please try again. (${err.message})`;
+  }
+}
+
+function renderList(movies) {
+  const container = document.getElementById('filmsList');
+  document.getElementById('listCount').textContent = `${movies.length} Films`;
+
+  movies.forEach((m, i) => {
+    const year    = m.release_date ? m.release_date.slice(0,4) : '—';
+    const score   = m.vote_average ? m.vote_average.toFixed(1) : '—';
+    const genres  = (m.genre_ids || []).slice(0,3).map(id => GENRE_MAP[id]).filter(Boolean);
+    const overview= m.overview ? m.overview.slice(0,160) + (m.overview.length > 160 ? '…' : '') : '';
+    const rankStr = String(i + 1).padStart(2, '0');
+
+    const row = document.createElement('div');
+    row.className = 'film-row';
+
+    row.innerHTML = `
+      <div class="film-rank"><div class="rank-num">${rankStr}</div></div>
+      <div class="film-poster" id="poster-${i}">
+        ${m.poster_path
+          ? `<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" alt="${m.title}" loading="lazy">`
+          : `<div class="film-poster-placeholder">✦</div>`
+        }
+      </div>
+      <div class="film-info">
+        <div class="film-title-row">
+          <div class="film-title">${m.title}</div>
+          <div class="film-year">${year}</div>
+        </div>
+        <div class="film-genres">
+          ${genres.map(g => `<span class="film-genre">${g}</span>`).join('')}
+        </div>
+        ${overview ? `<div class="film-overview">${overview}</div>` : ''}
+      </div>
+      <div class="film-score">
+        <div class="score-val">${score}</div>
+        <div class="score-star">★</div>
+        <div class="score-label">TMDB</div>
+      </div>
+    `;
+
+    // Fade in poster when loaded
+    const img = row.querySelector('img');
+    if (img) img.addEventListener('load', () => img.classList.add('loaded'));
+
+    container.appendChild(row);
+  });
+
+  container.style.display = 'block';
+}
+</script>
+
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;&middot;&nbsp; No outside food or drink</div>
+</footer>
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+
+  // Create left and right rails
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+
+  var fills   = document.querySelectorAll('.rail-fill');
+  var markers = document.querySelectorAll('.rail-marker');
+  var glows   = document.querySelectorAll('.rail-glow');
+
+  // ── Scroll rope + parallax glow ──────────────────
+  function update(){
+    var s = window.scrollY;
+    var maxS = document.documentElement.scrollHeight - window.innerHeight;
+    var p = maxS > 0 ? Math.min(1, Math.max(0, s / maxS)) : 0;
+
+    // Rope fill
+    fills.forEach(function(f){ f.style.height = (p*100)+'%'; });
+
+    // Diamond marker (80px padding from top/bottom)
+    var trackH = window.innerHeight - 160;
+    var markerY = 80 + p * trackH;
+    markers.forEach(function(m){ m.style.top = markerY+'px'; });
+
+    // Parallax glow — left leads, right slightly offset
+    if(glows[0]) glows[0].style.top = (8  + p*54)+'%';
+    if(glows[1]) glows[1].style.top = (22 + p*52)+'%';
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  update();
+
+  // ── Section pulse (IntersectionObserver) ─────────
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        markers.forEach(function(m){
+          m.classList.add('pulsing');
+          setTimeout(function(){ m.classList.remove('pulsing'); }, 500);
+        });
+      }
+    });
+  },{threshold:0.2, rootMargin:'-8% 0px -8% 0px'});
+
+  document.querySelectorAll(
+    'h1, h2, .section-head, .section-head-title, .list-meta, header'
+  ).forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>

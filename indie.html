@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indie & Local Theatres — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* Override shared ceiling/floor with indie gradient style */
+.ceiling { height:6px; background:linear-gradient(90deg,var(--crimson) 0%,var(--gold-dim) 30%,var(--gold) 50%,var(--gold-dim) 70%,var(--crimson) 100%); z-index:200; }
+.floor   { height:6px; background:linear-gradient(90deg,var(--crimson) 0%,var(--gold-dim) 30%,var(--gold) 50%,var(--gold-dim) 70%,var(--crimson) 100%); z-index:200; }
+/* Override nav */
+.nav { padding:14px 40px; background:rgba(8,6,8,0.92); border-bottom:1px solid var(--cream-ghost); }
+.nav-back { gap:10px; font-size:9px; color:var(--cream-muted); transition:color 0.2s; }
+.nav-back-line { display:none; }
+.nav-back::before { content:''; width:20px; height:1px; background:currentColor; transition:width 0.2s; }
+.nav-back:hover::before { width:30px; }
+.nav-title { color:var(--gold-dim); }
+.nav-room { font-family:'Cinzel',serif; font-size:8px; letter-spacing:3px; color:var(--cream-muted); opacity:0.6; }
+/* Page header */
+.page-header { text-align:center; padding:72px 40px 56px; position:relative; border-bottom:1px solid var(--cream-ghost); }
+.page-header::before { content:''; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:120px; height:1px; background:var(--gold-dim); }
+.room-badge { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; display:block; }
+.page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,64px); font-weight:400; line-height:1.1; color:var(--cream); margin-bottom:10px; }
+.page-header h1 em { font-style:italic; color:var(--gold); display:block; }
+.header-rule { display:flex; align-items:center; justify-content:center; gap:16px; margin:28px auto; max-width:400px; }
+.rule-line { flex:1; height:1px; background:linear-gradient(to right,transparent,var(--gold-dim)); }
+.rule-line.r { background:linear-gradient(to left,transparent,var(--gold-dim)); }
+.diamond { width:5px; height:5px; background:var(--gold-dim); transform:rotate(45deg); flex-shrink:0; }
+.diamond.hollow { background:transparent; border:1px solid var(--gold); width:8px; height:8px; }
+.page-sub { font-size:18px; font-style:italic; color:var(--cream-muted); max-width:560px; margin:0 auto; line-height:1.7; }
+main { max-width:1100px; margin:0 auto; padding:72px 40px 120px; }
+.section-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:5px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:14px; }
+.section-label::after { content:''; flex:1; height:1px; background:var(--cream-ghost); }
+.section-title { font-family:'Playfair Display',serif; font-size:clamp(22px,3vw,34px); font-weight:400; color:var(--cream); margin-bottom:24px; line-height:1.2; }
+.section-title em { font-style:italic; color:var(--gold); }
+.health-section { margin-bottom:80px; }
+.health-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; margin-bottom:48px; border:1px solid var(--cream-ghost); }
+.stat-card { padding:36px 32px; background:var(--deep); text-align:center; border:1px solid var(--cream-ghost); transition:background 0.3s; }
+.stat-card:hover { background:var(--velvet); }
+.stat-number { font-family:'Playfair Display',serif; font-size:clamp(36px,5vw,56px); font-style:italic; color:var(--gold); display:block; margin-bottom:8px; line-height:1; }
+.stat-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:3px; color:var(--cream-muted); text-transform:uppercase; margin-bottom:10px; }
+.stat-context { font-size:14px; color:var(--cream-muted); font-style:italic; line-height:1.5; }
+.prose { font-size:18px; line-height:1.85; color:var(--cream-dim); max-width:720px; }
+.prose p { margin-bottom:20px; }
+.prose p:last-child { margin-bottom:0; }
+.prose strong { color:var(--cream); font-weight:500; }
+.pull-quote { border-left:2px solid var(--gold-dim); padding:16px 28px; margin:36px 0; font-size:20px; font-style:italic; color:var(--cream); line-height:1.6; max-width:640px; }
+.pull-quote cite { display:block; font-size:12px; font-style:normal; font-family:'Cinzel',serif; letter-spacing:2px; color:var(--gold-dim); margin-top:10px; }
+.resources-section { margin-bottom:80px; }
+.resources-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+.resource-card { display:block; padding:32px 28px; background:var(--deep); border:1px solid var(--cream-ghost); text-decoration:none; transition:background 0.3s,border-color 0.3s; position:relative; overflow:hidden; }
+.resource-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gold-dim); transform:scaleX(0); transition:transform 0.3s; transform-origin:left; }
+.resource-card:hover { background:var(--velvet); border-color:var(--gold-pale); }
+.resource-card:hover::after { transform:scaleX(1); }
+.resource-type { font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; color:var(--crimson-bright); text-transform:uppercase; margin-bottom:12px; }
+.resource-name { font-family:'Playfair Display',serif; font-size:18px; color:var(--cream); margin-bottom:10px; line-height:1.2; }
+.resource-desc { font-size:14px; color:var(--cream-muted); line-height:1.6; font-style:italic; }
+.resource-arrow { position:absolute; bottom:20px; right:20px; width:24px; height:24px; border:1px solid var(--cream-ghost); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--gold-dim); transition:border-color 0.3s,color 0.3s; }
+.resource-card:hover .resource-arrow { border-color:var(--gold-dim); color:var(--gold); }
+.forums-section { margin-bottom:80px; }
+.forum-list { display:flex; flex-direction:column; gap:2px; }
+.forum-card { display:flex; align-items:center; gap:28px; padding:28px 32px; background:var(--deep); border:1px solid var(--cream-ghost); text-decoration:none; transition:background 0.3s; }
+.forum-card:hover { background:var(--velvet); }
+.forum-icon { font-size:28px; flex-shrink:0; width:48px; text-align:center; filter:grayscale(0.3); }
+.forum-body { flex:1; }
+.forum-platform { font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:6px; }
+.forum-name { font-family:'Playfair Display',serif; font-size:19px; color:var(--cream); margin-bottom:6px; }
+.forum-desc { font-size:14px; color:var(--cream-muted); font-style:italic; line-height:1.5; }
+.forum-members { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); text-align:right; flex-shrink:0; }
+.finder-section { margin-bottom:80px; }
+.finder-cards { display:grid; grid-template-columns:repeat(2,1fr); gap:2px; }
+.finder-card { padding:32px; background:var(--deep); border:1px solid var(--cream-ghost); }
+.finder-num { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); margin-bottom:16px; }
+.finder-title { font-family:'Playfair Display',serif; font-size:20px; color:var(--cream); margin-bottom:10px; }
+.finder-desc { font-size:15px; color:var(--cream-muted); line-height:1.65; font-style:italic; }
+footer { border-top:1px solid var(--cream-ghost); }
+@media (max-width:800px) {
+  main { padding:48px 24px 100px; }
+  .health-grid { grid-template-columns:1fr; }
+  .resources-grid { grid-template-columns:1fr; }
+  .finder-cards { grid-template-columns:1fr; }
+  .forum-card { flex-direction:column; gap:12px; }
+  .forum-members { text-align:left; }
+  .nav-title, .nav-room { display:none; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="floor"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">Grand Lobby</a>
+  <div class="nav-title">Adam's Cinema</div>
+  <div class="nav-room">Screening Room No. 4</div>
+</nav>
+
+<header class="page-header">
+  <span class="room-badge">Screening Room No. 4</span>
+  <h1>Indie &amp; Local<em>Theatres</em></h1>
+  <div class="header-rule">
+    <div class="rule-line"></div>
+    <div class="rule-center" style="display:flex;align-items:center;gap:8px;">
+      <div class="diamond"></div>
+      <div class="diamond hollow"></div>
+      <div class="diamond"></div>
+    </div>
+    <div class="rule-line r"></div>
+  </div>
+  <p class="page-sub">The small screens that keep cinema alive. Before the multiplex, there was the picture house — and it's still out there, showing things the chains won't touch.</p>
+</header>
+
+<main>
+
+  <!-- ─── HEALTH OF THE INDUSTRY ─── -->
+  <section class="health-section">
+    <div class="section-label">State of Play</div>
+    <h2 class="section-title">The Health of <em>Small Cinema</em></h2>
+
+    <div class="health-grid">
+      <div class="stat-card">
+        <span class="stat-number">~1,800</span>
+        <div class="stat-label">Independent Cinemas in the US</div>
+        <div class="stat-context">Down from over 4,000 in the 1990s, but stabilising post-pandemic as communities fight to keep their local screens</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">40%</span>
+        <div class="stat-label">of US screens closed in 2020</div>
+        <div class="stat-context">COVID-19 was the most severe blow to independent exhibition since the advent of television. Many never reopened.</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">$250M</span>
+        <div class="stat-label">Federal SVOG Relief (2021)</div>
+        <div class="stat-context">The Shuttered Venue Operators Grant kept hundreds of independent theatres from permanent closure during the pandemic</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">62%</span>
+        <div class="stat-label">of Americans live near an indie cinema</div>
+        <div class="stat-context">The National Association of Theatre Owners estimates most mid-sized US cities still have at least one independent screen</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>Independent theatres have always operated on a different calculus than the multiplex. Where chains optimise for volume — blockbusters, peak showtimes, maximum concession spend — the indie cinema bets on <strong>community, curation, and character</strong>. That bet has never been harder to sustain, and never more worth making.</p>
+
+      <div class="pull-quote">
+        "The independent cinema isn't just a building. It's the last secular institution in many towns where strangers sit together in the dark and share an experience."
+        <cite>— Art House Convergence, 2023 Annual Report</cite>
+      </div>
+
+      <p>The post-pandemic recovery has been uneven. Major chains rebounded on the back of franchise films, but indie screens — which depend heavily on specialty releases, foreign language films, and documentary programming — faced a slower climb. Streaming's continued expansion has compressed the theatrical window, making it harder to hold a film long enough to build word-of-mouth, which is how indie titles have always found their audiences.</p>
+
+      <p>Yet the picture isn't entirely bleak. <strong>Membership models and community ownership</strong> have emerged as durable new paths for independent theatres. The Alamo Drafthouse's franchise model, the co-op structure of Seattle's SIFF Cinema, and the nonprofit status of theatres like Chicago's Music Box all demonstrate that viable alternatives to the traditional exhibition business exist — they just require rethinking what a cinema owes its community and what a community owes its cinema.</p>
+
+      <p>The films that define our cultural conversation — the ones that win awards, generate criticism, and get talked about for decades — disproportionately come from independent production and play first on independent screens. <strong>Preserving indie exhibition is, in a real sense, preserving the conditions under which serious cinema can exist at all.</strong></p>
+    </div>
+  </section>
+
+  <!-- ─── RESOURCES ─── -->
+  <section class="resources-section">
+    <div class="section-label">Essential Reading</div>
+    <h2 class="section-title">Resources &amp; <em>Organisations</em></h2>
+
+    <div class="resources-grid">
+
+      <a class="resource-card" href="https://www.arthouse.org" target="_blank" rel="noopener">
+        <div class="resource-type">Organisation</div>
+        <div class="resource-name">Art House Convergence</div>
+        <div class="resource-desc">The national network for art house and indie cinemas. Annual conference, advocacy, and operator resources.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+      <a class="resource-card" href="https://www.natoif.org" target="_blank" rel="noopener">
+        <div class="resource-type">Organisation</div>
+        <div class="resource-name">NATO Independent Film Committee</div>
+        <div class="resource-desc">National Association of Theatre Owners' body dedicated to independent exhibition. Policy, data, and advocacy.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+      <a class="resource-card" href="https://www.indiewire.com/t/theaters/" target="_blank" rel="noopener">
+        <div class="resource-type">News</div>
+        <div class="resource-name">IndieWire — Theatres</div>
+        <div class="resource-desc">Ongoing coverage of the independent exhibition landscape, box office analysis, and theatre closures and openings.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+      <a class="resource-card" href="https://www.boxofficemojo.com/chart/indie_snapshot/" target="_blank" rel="noopener">
+        <div class="resource-type">Data</div>
+        <div class="resource-name">Box Office Mojo — Indie Snapshot</div>
+        <div class="resource-desc">Real-time box office tracking for specialty and limited releases — the films playing your local art house right now.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+      <a class="resource-card" href="https://filmfreeway.com" target="_blank" rel="noopener">
+        <div class="resource-type">Platform</div>
+        <div class="resource-name">FilmFreeway</div>
+        <div class="resource-desc">The submission platform for film festivals worldwide. Invaluable for tracking the circuit that feeds indie theatrical releases.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+      <a class="resource-card" href="https://www.fandango.com/movie-theaters" target="_blank" rel="noopener">
+        <div class="resource-type">Finder</div>
+        <div class="resource-name">Fandango Theatre Finder</div>
+        <div class="resource-desc">Filter by "Art House" to find non-chain theatres near you showing specialty and limited-release programming.</div>
+        <div class="resource-arrow">↗</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ─── FORUMS & COMMUNITIES ─── -->
+  <section class="forums-section">
+    <div class="section-label">Community</div>
+    <h2 class="section-title">Forums &amp; <em>Online Spaces</em></h2>
+
+    <div class="forum-list">
+
+      <a class="forum-card" href="https://www.reddit.com/r/TrueFilm/" target="_blank" rel="noopener">
+        <div class="forum-icon">📋</div>
+        <div class="forum-body">
+          <div class="forum-platform">Reddit</div>
+          <div class="forum-name">r/TrueFilm</div>
+          <div class="forum-desc">Serious film discussion without the meme culture. Regular threads on art house releases, independent cinema, and the business of film exhibition.</div>
+        </div>
+        <div class="forum-members">700K+ members</div>
+      </a>
+
+      <a class="forum-card" href="https://www.reddit.com/r/MovieTheaters/" target="_blank" rel="noopener">
+        <div class="forum-icon">🎬</div>
+        <div class="forum-body">
+          <div class="forum-platform">Reddit</div>
+          <div class="forum-name">r/MovieTheaters</div>
+          <div class="forum-desc">Dedicated to the theatre-going experience — reviews of local cinemas, news on closures and openings, and advocacy for in-person exhibition.</div>
+        </div>
+        <div class="forum-members">85K+ members</div>
+      </a>
+
+      <a class="forum-card" href="https://letterboxd.com/film/popular/this/week/" target="_blank" rel="noopener">
+        <div class="forum-icon">🎞</div>
+        <div class="forum-body">
+          <div class="forum-platform">Letterboxd</div>
+          <div class="forum-name">Letterboxd Lists & Reviews</div>
+          <div class="forum-desc">The de facto home of serious film culture online. Lists of essential indie theatres, festival films, and community curation at scale.</div>
+        </div>
+        <div class="forum-members">12M+ members</div>
+      </a>
+
+      <a class="forum-card" href="https://mubi.com/notebook" target="_blank" rel="noopener">
+        <div class="forum-icon">🖤</div>
+        <div class="forum-body">
+          <div class="forum-platform">MUBI</div>
+          <div class="forum-name">The Notebook by MUBI</div>
+          <div class="forum-desc">Film criticism and essay writing from MUBI's editorial team. Consistently covers the art house circuit, retrospectives, and independent cinema worldwide.</div>
+        </div>
+        <div class="forum-members">Editorial</div>
+      </a>
+
+      <a class="forum-card" href="https://filmstruck.net" target="_blank" rel="noopener">
+        <div class="forum-icon">🏛</div>
+        <div class="forum-body">
+          <div class="forum-platform">Community Forum</div>
+          <div class="forum-name">Save Local Cinemas Coalition</div>
+          <div class="forum-desc">Grassroots advocacy network connecting community members, local press, and theatre owners fighting to preserve neighbourhood screens.</div>
+        </div>
+        <div class="forum-members">Advocacy</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ─── HOW TO FIND YOUR LOCAL ─── -->
+  <section class="finder-section">
+    <div class="section-label">Getting There</div>
+    <h2 class="section-title">How to Find Your <em>Local</em></h2>
+
+    <div class="finder-cards">
+
+      <div class="finder-card">
+        <div class="finder-num">Method 01</div>
+        <div class="finder-title">Search "Art House Cinema Near Me"</div>
+        <div class="finder-desc">Google prioritises chain theatres in standard theatre searches. Adding "art house," "indie cinema," or "film society" to your search surfaces the good stuff.</div>
+      </div>
+
+      <div class="finder-card">
+        <div class="finder-num">Method 02</div>
+        <div class="finder-title">Check Your City's Film Society</div>
+        <div class="finder-desc">Most mid-sized American cities have a film society or arts council that curates screenings. They often operate out of small venues not listed on Fandango at all.</div>
+      </div>
+
+      <div class="finder-card">
+        <div class="finder-num">Method 03</div>
+        <div class="finder-title">Follow MUBI's Theatrical Listings</div>
+        <div class="finder-desc">MUBI publishes a weekly "In Theatres" section tracking indie and limited-release films by city. If a film's on it, an art house near you is likely showing it.</div>
+      </div>
+
+      <div class="finder-card">
+        <div class="finder-num">Method 04</div>
+        <div class="finder-title">Use the Art House Convergence Directory</div>
+        <div class="finder-desc">AHC maintains a searchable database of member art house theatres across the US. It's the most reliable single source for finding genuine indie exhibition near you.</div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;·&nbsp; No outside food or drink</div>
+</footer>
+
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+
+  // Create left and right rails
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+
+  var fills   = document.querySelectorAll('.rail-fill');
+  var markers = document.querySelectorAll('.rail-marker');
+  var glows   = document.querySelectorAll('.rail-glow');
+
+  // ── Scroll rope + parallax glow ──────────────────
+  function update(){
+    var s = window.scrollY;
+    var maxS = document.documentElement.scrollHeight - window.innerHeight;
+    var p = maxS > 0 ? Math.min(1, Math.max(0, s / maxS)) : 0;
+
+    // Rope fill
+    fills.forEach(function(f){ f.style.height = (p*100)+'%'; });
+
+    // Diamond marker (80px padding from top/bottom)
+    var trackH = window.innerHeight - 160;
+    var markerY = 80 + p * trackH;
+    markers.forEach(function(m){ m.style.top = markerY+'px'; });
+
+    // Parallax glow — left leads, right slightly offset
+    if(glows[0]) glows[0].style.top = (8  + p*54)+'%';
+    if(glows[1]) glows[1].style.top = (22 + p*52)+'%';
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  update();
+
+  // ── Section pulse (IntersectionObserver) ─────────
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        markers.forEach(function(m){
+          m.classList.add('pulsing');
+          setTimeout(function(){ m.classList.remove('pulsing'); }, 500);
+        });
+      }
+    });
+  },{threshold:0.2, rootMargin:'-8% 0px -8% 0px'});
+
+  document.querySelectorAll(
+    'h1, h2, .section-head, .section-head-title, .list-meta, header'
+  ).forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>

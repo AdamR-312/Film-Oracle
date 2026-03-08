@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 25 Lists — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+.header-ornament { opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.header-sub { opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+main { max-width:1100px; margin:0 auto; padding:56px 40px 120px; position:relative; z-index:2; }
+.list-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.list-card { background:linear-gradient(135deg,rgba(26,8,16,0.9),rgba(15,5,8,0.95)); border:1px solid rgba(201,168,76,0.08); padding:36px 32px; position:relative; text-decoration:none; color:inherit; display:block; transition:border-color 0.3s; opacity:0; animation:fadeUp 0.6s ease forwards; }
+.list-card:nth-child(1)  { animation-delay:0.15s; }
+.list-card:nth-child(2)  { animation-delay:0.20s; }
+.list-card:nth-child(3)  { animation-delay:0.25s; }
+.list-card:nth-child(4)  { animation-delay:0.30s; }
+.list-card:nth-child(5)  { animation-delay:0.35s; }
+.list-card:nth-child(6)  { animation-delay:0.40s; }
+.list-card:nth-child(7)  { animation-delay:0.45s; }
+.list-card:nth-child(8)  { animation-delay:0.50s; }
+.list-card:nth-child(9)  { animation-delay:0.55s; }
+.list-card:nth-child(10) { animation-delay:0.60s; }
+.list-card:nth-child(11) { animation-delay:0.65s; }
+.list-card:nth-child(12) { animation-delay:0.70s; }
+.list-card:nth-child(13) { animation-delay:0.75s; }
+.list-card:nth-child(14) { animation-delay:0.80s; }
+.list-card:hover { border-color:rgba(201,168,76,0.3); }
+.list-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.05),transparent 70%); opacity:0; transition:opacity 0.4s; }
+.list-card:hover::before { opacity:1; }
+.list-card::after { content:''; position:absolute; top:10px; left:10px; width:16px; height:16px; border-top:1px solid rgba(201,168,76,0.2); border-left:1px solid rgba(201,168,76,0.2); transition:all 0.3s; }
+.list-card:hover::after { width:22px; height:22px; border-color:var(--gold); }
+.card-corner-br { position:absolute; bottom:10px; right:10px; width:16px; height:16px; border-bottom:1px solid rgba(201,168,76,0.2); border-right:1px solid rgba(201,168,76,0.2); transition:all 0.3s; pointer-events:none; }
+.list-card:hover .card-corner-br { width:22px; height:22px; border-color:var(--gold); }
+.card-num { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); margin-bottom:12px; }
+.card-title { font-family:'Playfair Display',serif; font-size:clamp(20px,2.2vw,26px); font-weight:400; line-height:1.2; margin-bottom:10px; color:var(--cream); transition:color 0.3s; }
+.card-desc { font-size:14px; line-height:1.6; color:var(--cream-muted); margin-bottom:24px; }
+.card-enter { display:flex; align-items:center; gap:10px; font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; transition:all 0.3s; }
+.list-card:hover .card-enter { color:var(--gold); gap:14px; }
+.enter-line { width:20px; height:1px; background:currentColor; transition:width 0.3s; }
+.list-card:hover .enter-line { width:32px; }
+@media (max-width:680px) {
+  main { padding:40px 20px 100px; }
+  .list-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">Screening Room No. 2</span>
+</nav>
+
+<header>
+  <div class="room-label">Screening Room No. 2</div>
+  <h1>Top 25<em>Movie Lists</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">Definitive rankings. Argued without apology.</p>
+</header>
+
+<main>
+  <div class="list-grid">
+
+    <a class="list-card" href="list.html?list=horror">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 001</div>
+      <div class="card-title">25 Greatest Horror Films</div>
+      <p class="card-desc">Fear distilled into art. The films that refuse to let go long after the credits roll.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=thriller">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 002</div>
+      <div class="card-title">25 Greatest Thrillers</div>
+      <p class="card-desc">Tension as a filmmaking language. The slow tightening of a knot you didn't know was there.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=comedy">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 003</div>
+      <div class="card-title">25 Greatest Comedies</div>
+      <p class="card-desc">The hardest genre to perfect. The films that earn real laughter, not just smiles.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=psych_thriller">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 004</div>
+      <div class="card-title">25 Greatest Psychological Thrillers</div>
+      <p class="card-desc">Minds unraveling under pressure. Films where the real danger lives inside the protagonist.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=action">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 005</div>
+      <div class="card-title">25 Greatest Action Films</div>
+      <p class="card-desc">Kinetic filmmaking at its absolute peak. Bodies, velocity, and consequence.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=mystery">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 006</div>
+      <div class="card-title">25 Greatest Mystery & Neo-Noir Films</div>
+      <p class="card-desc">Rain-slicked streets and unreliable narrators. The genre that trusts no one, least of all the audience.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=scifi">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 007</div>
+      <div class="card-title">25 Greatest Science Fiction Films</div>
+      <p class="card-desc">The future as a mirror held to the present. Ideas that linger decades after viewing.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=historical">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 008</div>
+      <div class="card-title">25 Greatest Historical Films</div>
+      <p class="card-desc">The past rendered vivid. Films that make you feel the weight of what actually happened.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=drama">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 009</div>
+      <div class="card-title">25 Greatest Dramas</div>
+      <p class="card-desc">Cinema stripped to its essential truth. Human beings under pressure, trying to endure.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=gangster">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 010</div>
+      <div class="card-title">25 Greatest Gangster Films</div>
+      <p class="card-desc">The rise, the empire, the fall. Moral ambiguity dressed in the finest clothes.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=war">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 011</div>
+      <div class="card-title">25 Greatest War Films</div>
+      <p class="card-desc">From the trenches to the Pacific. Films that refuse to glorify what they depict.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=romance">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 012</div>
+      <div class="card-title">25 Greatest Romance Films</div>
+      <p class="card-desc">Love under pressure. Cinema's oldest subject, still finding new ways to devastate.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=animated">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 013</div>
+      <div class="card-title">25 Greatest Animated Films</div>
+      <p class="card-desc">The medium that broke every rule. From Akira to Waltz with Bashir — animation as serious cinema.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+    <a class="list-card" href="list.html?list=western">
+      <div class="card-corner-br"></div>
+      <div class="card-num">List 014</div>
+      <div class="card-title">25 Greatest Westerns</div>
+      <p class="card-desc">The American myth at its most elemental. Landscape, justice, and the cost of civilization — cinema's most morally serious genre.</p>
+      <div class="card-enter"><div class="enter-line"></div>View List</div>
+    </a>
+
+  </div>
+</main>
+
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;&middot;&nbsp; No outside food or drink</div>
+</footer>
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+
+  // Create left and right rails
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+
+  var fills   = document.querySelectorAll('.rail-fill');
+  var markers = document.querySelectorAll('.rail-marker');
+  var glows   = document.querySelectorAll('.rail-glow');
+
+  // ── Scroll rope + parallax glow ──────────────────
+  function update(){
+    var s = window.scrollY;
+    var maxS = document.documentElement.scrollHeight - window.innerHeight;
+    var p = maxS > 0 ? Math.min(1, Math.max(0, s / maxS)) : 0;
+
+    // Rope fill
+    fills.forEach(function(f){ f.style.height = (p*100)+'%'; });
+
+    // Diamond marker (80px padding from top/bottom)
+    var trackH = window.innerHeight - 160;
+    var markerY = 80 + p * trackH;
+    markers.forEach(function(m){ m.style.top = markerY+'px'; });
+
+    // Parallax glow — left leads, right slightly offset
+    if(glows[0]) glows[0].style.top = (8  + p*54)+'%';
+    if(glows[1]) glows[1].style.top = (22 + p*52)+'%';
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  update();
+
+  // ── Section pulse (IntersectionObserver) ─────────
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        markers.forEach(function(m){
+          m.classList.add('pulsing');
+          setTimeout(function(){ m.classList.remove('pulsing'); }, 500);
+        });
+      }
+    });
+  },{threshold:0.2, rootMargin:'-8% 0px -8% 0px'});
+
+  document.querySelectorAll(
+    'h1, h2, .section-head, .section-head-title, .list-meta, header'
+  ).forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>
