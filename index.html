@@ -80,11 +80,15 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
 .footer-mark { font-family:'Playfair Display',serif; font-style:italic; font-size:22px; color:var(--gold-dim); margin-bottom:10px; }
 .footer-sub { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--cream-muted); opacity:0.5; }
 /* Filmstrip */
-.filmstrip-bg { position:absolute; top:50%; transform:translateY(-50%); left:0; right:0; height:160px; z-index:0; overflow:hidden; pointer-events:none; -webkit-mask-image:linear-gradient(to right,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.85) 10%,rgba(0,0,0,0) 38%,rgba(0,0,0,0) 62%,rgba(0,0,0,0.85) 90%,rgba(0,0,0,0.85) 100%); mask-image:linear-gradient(to right,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.85) 10%,rgba(0,0,0,0) 38%,rgba(0,0,0,0) 62%,rgba(0,0,0,0.85) 90%,rgba(0,0,0,0.85) 100%); }
-.filmstrip-bg.interactive { pointer-events:auto; }
+.filmstrip-left,.filmstrip-right { position:absolute; top:50%; transform:translateY(-50%); height:220px; z-index:0; overflow:hidden; pointer-events:none; }
+.filmstrip-left { left:0; right:50%; -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,0.85) 14%,rgba(0,0,0,0.85) 100%); mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,0.85) 14%,rgba(0,0,0,0.85) 100%); }
+.filmstrip-right { left:50%; right:0; -webkit-mask-image:linear-gradient(to left,transparent 0%,rgba(0,0,0,0.85) 14%,rgba(0,0,0,0.85) 100%); mask-image:linear-gradient(to left,transparent 0%,rgba(0,0,0,0.85) 14%,rgba(0,0,0,0.85) 100%); }
+.filmstrip-left.interactive,.filmstrip-right.interactive { pointer-events:auto; }
 .filmstrip-scroll { display:flex; height:100%; animation:filmRoll 55s linear infinite; will-change:transform; }
+.filmstrip-scroll.reverse { animation-name:filmRollReverse; }
 .filmstrip-scroll:hover { animation-play-state:paused; }
 @keyframes filmRoll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes filmRollReverse { from{transform:translateX(-50%)} to{transform:translateX(0)} }
 .film-unit { display:flex; flex-direction:column; flex-shrink:0; width:130px; background:#18140f; }
 .film-sprocket { height:26px; flex-shrink:0; background-color:#18140f; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Crect width='26' height='26' fill='%2318140f'/%3E%3Crect x='6' y='6' width='14' height='14' rx='3' fill='%230a0706'/%3E%3C/svg%3E"); background-repeat:repeat-x; background-size:26px 26px; }
 .film-middle { flex:1; display:flex; align-items:stretch; }
@@ -107,7 +111,7 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
   h1 { font-size:52px; }
   .sconce { display:none; }
   .film-unit { width:100px; }
-  .filmstrip-bg { height:120px; }
+  .filmstrip-left,.filmstrip-right { height:150px; }
 }
 </style>
 </head>
@@ -134,10 +138,14 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
 </div>
 
 <header>
-  <!-- Filmstrip: Now in Theatres — sits behind header text -->
-  <div class="filmstrip-bg" id="filmstripBg">
-    <div class="filmstrip-scroll" id="filmstripTrack"></div>
-    <div class="filmstrip-watermark">Now in Theatres</div>
+  <!-- Filmstrip: Trending left, Upcoming right — both converge toward center -->
+  <div class="filmstrip-left" id="filmstripLeft">
+    <div class="filmstrip-scroll reverse" id="filmstripTrackLeft"></div>
+    <div class="filmstrip-watermark">Trending This Week</div>
+  </div>
+  <div class="filmstrip-right" id="filmstripRight">
+    <div class="filmstrip-scroll" id="filmstripTrackRight"></div>
+    <div class="filmstrip-watermark">Coming Soon</div>
   </div>
 
   <div class="header-content">
@@ -284,7 +292,7 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
     document.getElementById('curtainR').classList.add('open');
   }, 400);
 
-  // ── Filmstrip: Now in Theatres ─────────────────────────────────────────
+  // ── Filmstrip: Trending (left) + Upcoming (right) ──────────────────────
   const WORKER = 'https://tmdb-proxy.adamrowe312.workers.dev';
   const POSTER_BASE = 'https://image.tmdb.org/t/p/w185';
 
@@ -311,46 +319,42 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
     </div>`;
   }
 
-  async function loadFilmstrip() {
-    const track = document.getElementById('filmstripTrack');
-    const bg    = document.getElementById('filmstripBg');
-
-    try {
-      const res   = await fetch(`${WORKER}/movie/now_playing?region=US&page=1`);
-      const data  = await res.json();
-      const films = (data.results || []).filter(m => m.title);
-
-      if (!films.length) throw new Error('empty');
-
-      // Build units, duplicate for seamless loop
-      const units = films.map((m, i) => buildUnit(m, i)).join('');
-      track.innerHTML = units + units;
-
-      // Lazy-load poster images with fade in
-      track.querySelectorAll('img').forEach(img => {
-        img.addEventListener('load', () => img.classList.add('loaded'));
-        img.addEventListener('error', () => {
-          img.parentElement.innerHTML = '<div class="film-no-poster">✦</div>';
-        });
-      });
-
-      // Enable hover interaction on the strip
-      bg.classList.add('interactive');
-
-      // Set scroll duration based on content width
-      const unitWidth = 130; // film-unit width
-      const totalWidth = films.length * unitWidth;
-      const duration = Math.max(35, totalWidth / 4.5);
-      track.style.animationDuration = `${duration}s`;
-
-    } catch(e) {
-      // Fallback: empty frame placeholders
+  function buildStrip(track, bg, films) {
+    const unitWidth = 130;
+    if (!films.length) {
       const placeholders = Array.from({length: 18}, (_, i) => buildUnit(null, i)).join('');
       track.innerHTML = placeholders + placeholders;
+      return;
     }
+    const units = films.map((m, i) => buildUnit(m, i)).join('');
+    track.innerHTML = units + units;
+    track.querySelectorAll('img').forEach(img => {
+      img.addEventListener('load', () => img.classList.add('loaded'));
+      img.addEventListener('error', () => {
+        img.parentElement.innerHTML = '<div class="film-no-poster">✦</div>';
+      });
+    });
+    bg.classList.add('interactive');
+    const duration = Math.max(25, (films.length * unitWidth) / 6);
+    track.style.animationDuration = `${duration}s`;
   }
 
-  loadFilmstrip();
+  async function loadFilmstrips() {
+    const trackLeft  = document.getElementById('filmstripTrackLeft');
+    const trackRight = document.getElementById('filmstripTrackRight');
+    const bgLeft     = document.getElementById('filmstripLeft');
+    const bgRight    = document.getElementById('filmstripRight');
+
+    const [trendingData, upcomingData] = await Promise.all([
+      fetch(`${WORKER}/trending/movie/week`).then(r => r.json()).catch(() => ({ results: [] })),
+      fetch(`${WORKER}/movie/upcoming?region=US&page=1`).then(r => r.json()).catch(() => ({ results: [] }))
+    ]);
+
+    buildStrip(trackLeft,  bgLeft,  (trendingData.results || []).filter(m => m.title));
+    buildStrip(trackRight, bgRight, (upcomingData.results || []).filter(m => m.title));
+  }
+
+  loadFilmstrips();
 </script>
 
 <script>

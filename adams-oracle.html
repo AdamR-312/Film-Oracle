@@ -129,7 +129,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
 #result-backdrop::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(8,6,8,0.93),rgba(26,8,16,0.90)); }
 #result.has-backdrop #result-backdrop { opacity:1; }
 .result-layout { position:relative; z-index:1; display:flex; gap:32px; align-items:flex-start; }
-#result-poster { width:110px; flex-shrink:0; border:1px solid rgba(201,168,76,0.18); display:block; opacity:0; transition:opacity 0.6s; filter:saturate(0.85) brightness(0.9); }
+#result-poster { width:140px; flex-shrink:0; border:1px solid rgba(201,168,76,0.18); display:block; opacity:0; transition:opacity 0.6s; filter:saturate(0.85) brightness(0.9); }
 #result-poster.loaded { opacity:1; }
 .result-body { flex:1; min-width:0; }
 
@@ -159,7 +159,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
   .progress-wrap { padding:12px 24px; }
   .q-sub { margin-left:0; }
   .result-layout { flex-direction:column; gap:16px; }
-  #result-poster { width:80px; }
+  #result-poster { width:100px; }
   #similar-section { padding:0 24px 60px; }
 }
 </style>
@@ -412,6 +412,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
         <div id="result-find"></div>
         <div style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid rgba(201,168,76,0.1);padding-top:22px;">
           <a id="result-link" href="#" target="_blank" rel="noopener noreferrer" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;border:1px solid rgba(201,168,76,0.2);padding:10px 18px;transition:all 0.3s;display:inline-block;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,0.2)';this.style.color='var(--gold-dim)'">More Info ↗</a>
+          <a id="result-trailer" href="#" target="_blank" rel="noopener noreferrer" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--crimson-bright);text-decoration:none;text-transform:uppercase;border:1px solid rgba(139,26,40,0.35);padding:10px 18px;transition:all 0.3s;display:none;" onmouseover="this.style.borderColor='var(--crimson-bright)';this.style.color='#c0304a'" onmouseout="this.style.borderColor='rgba(139,26,40,0.35)';this.style.color='var(--crimson-bright)'">▶ Trailer</a>
           <button onclick="alreadySeen()" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--cream-muted);text-transform:uppercase;border:1px solid rgba(255,255,255,0.08);padding:10px 18px;background:none;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.3)';this.style.color='var(--cream)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.color='var(--cream-muted)'">Already Seen It — Try Again</button>
         </div>
       </div>
@@ -546,6 +547,8 @@ h1 .gold { color:var(--gold); font-style:italic; }
     backdropEl.style.backgroundImage = ''; result.classList.remove('has-backdrop');
     document.getElementById('similar-section').style.display = 'none';
     document.getElementById('similar-grid').innerHTML = '';
+    const trailerReset = document.getElementById('result-trailer');
+    if (trailerReset) { trailerReset.style.display = 'none'; trailerReset.href = '#'; }
 
     const optLabels = {};
     document.querySelectorAll('.opt').forEach(o => { optLabels[o.dataset.val] = o.textContent.trim(); });
@@ -631,7 +634,7 @@ Their questionnaire answers:
       const searchTitle = encodeURIComponent(cleanTitle);
       document.getElementById('result-link').href = `https://letterboxd.com/search/${searchTitle}/`;
 
-      // ── TMDB: poster, backdrop, similar films ──────────────────────────
+      // ── TMDB: poster, backdrop, trailer, similar films ─────────────────
       try {
         const TMDB = 'https://tmdb-proxy.adamrowe312.workers.dev';
         const IMG = 'https://image.tmdb.org/t/p/';
@@ -643,9 +646,9 @@ Their questionnaire answers:
         const movie = searchData.results && searchData.results[0];
 
         if (movie) {
-          // Poster
+          // Poster — w342 for sharper display
           if (movie.poster_path) {
-            posterEl.src = `${IMG}w185${movie.poster_path}`;
+            posterEl.src = `${IMG}w342${movie.poster_path}`;
             posterEl.alt = cleanTitle;
             posterEl.style.display = 'block';
             posterEl.addEventListener('load', () => posterEl.classList.add('loaded'), { once: true });
@@ -657,9 +660,24 @@ Their questionnaire answers:
             result.classList.add('has-backdrop');
           }
 
+          // Fetch details+videos and recommendations in parallel
+          const [detailData, simData] = await Promise.all([
+            fetch(`${TMDB}/movie/${movie.id}?append_to_response=videos`).then(r => r.json()),
+            fetch(`${TMDB}/movie/${movie.id}/recommendations?page=1`).then(r => r.json())
+          ]);
+
+          // Trailer
+          const trailerEl = document.getElementById('result-trailer');
+          const videos = (detailData.videos && detailData.videos.results) || [];
+          const trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer' && v.official)
+                       || videos.find(v => v.site === 'YouTube' && v.type === 'Trailer')
+                       || videos.find(v => v.site === 'YouTube');
+          if (trailer && trailerEl) {
+            trailerEl.href = `https://www.youtube.com/watch?v=${trailer.key}`;
+            trailerEl.style.display = 'inline-block';
+          }
+
           // Similar films
-          const simRes = await fetch(`${TMDB}/movie/${movie.id}/recommendations?page=1`);
-          const simData = await simRes.json();
           const similar = (simData.results || []).slice(0, 3);
 
           if (similar.length > 0) {
