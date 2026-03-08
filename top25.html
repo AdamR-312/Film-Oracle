@@ -4,185 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Top 25 Lists — Adam's Cinema</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 <style>
-:root {
-  --black: #080608;
-  --velvet: #1a0a10;
-  --velvet-mid: #2a1018;
-  --crimson: #6b0f1a;
-  --crimson-bright: #8b1a28;
-  --gold: #c9a84c;
-  --gold-bright: #e8c86a;
-  --gold-dim: #7a6130;
-  --gold-pale: #3d3018;
-  --cream: #f0e8d8;
-  --cream-dim: #c8b898;
-  --cream-muted: #7a6a58;
-  --cream-ghost: #1e1810;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--black);
-  color: var(--cream);
-  font-family: 'EB Garamond', Georgia, serif;
-  min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
-    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.008) 2px, rgba(255,255,255,0.008) 4px);
-  pointer-events: none;
-  z-index: 500;
-}
-
-.ceiling { position: fixed; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, transparent, var(--gold-dim), var(--gold), var(--gold-dim), transparent); z-index:10; }
-.ceiling-glow { position:fixed; top:0; left:0; right:0; height:200px; background: linear-gradient(to bottom, rgba(201,168,76,0.05), transparent); pointer-events:none; z-index:1; }
-.floor { position:fixed; bottom:0; left:0; right:0; height:6px; background: repeating-linear-gradient(90deg, var(--crimson) 0px, var(--crimson) 80px, var(--gold-pale) 80px, var(--gold-pale) 84px, var(--crimson) 84px); z-index:10; }
-.floor-glow { position:fixed; bottom:0; left:0; right:0; height:200px; background: linear-gradient(to top, rgba(107,15,26,0.1), transparent); pointer-events:none; z-index:1; }
-
-/* Nav */
-.nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(8,6,8,0.96);
-  border-bottom: 1px solid var(--gold-pale);
-  padding: 14px 48px;
-  display: flex; align-items: center; justify-content: space-between;
-  backdrop-filter: blur(8px);
-}
-.nav-back { display:flex; align-items:center; gap:12px; font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.3s; }
-.nav-back:hover { color: var(--gold); }
-.nav-back-line { width:24px; height:1px; background:currentColor; transition:width 0.3s; }
-.nav-back:hover .nav-back-line { width:36px; }
-.nav-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:4px; color:var(--cream-muted); text-transform:uppercase; }
-
-/* Header */
-header { text-align:center; padding:80px 20px 64px; position:relative; }
-header::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:300px; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); }
-
 .room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
-h1 { font-family:'Playfair Display',serif; font-weight:400; font-size:clamp(44px,7vw,88px); line-height:0.95; color:var(--cream); opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
-h1 em { font-style:italic; color:var(--gold); display:block; }
-.header-ornament { display:flex; align-items:center; justify-content:center; gap:14px; margin:28px auto; max-width:400px; opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
-.orn-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim)); }
-.orn-line.r { background:linear-gradient(270deg,transparent,var(--gold-dim)); }
-.orn-diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); }
-.header-sub { font-style:italic; font-size:18px; color:var(--cream-muted); opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
-
-@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-
-/* Main content */
-main {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 56px 40px 120px;
-  position: relative;
-  z-index: 2;
-}
-
-/* List grid */
-.list-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-}
-
-.list-card {
-  background: linear-gradient(135deg, rgba(26,8,16,0.9), rgba(15,5,8,0.95));
-  border: 1px solid rgba(201,168,76,0.08);
-  padding: 36px 32px;
-  position: relative;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  transition: border-color 0.3s;
-  opacity: 0;
-  animation: fadeUp 0.6s ease forwards;
-}
-
-.list-card:nth-child(1)  { animation-delay: 0.15s; }
-.list-card:nth-child(2)  { animation-delay: 0.20s; }
-.list-card:nth-child(3)  { animation-delay: 0.25s; }
-.list-card:nth-child(4)  { animation-delay: 0.30s; }
-.list-card:nth-child(5)  { animation-delay: 0.35s; }
-.list-card:nth-child(6)  { animation-delay: 0.40s; }
-.list-card:nth-child(7)  { animation-delay: 0.45s; }
-.list-card:nth-child(8)  { animation-delay: 0.50s; }
-.list-card:nth-child(9)  { animation-delay: 0.55s; }
-.list-card:nth-child(10) { animation-delay: 0.60s; }
-.list-card:nth-child(11) { animation-delay: 0.65s; }
-.list-card:nth-child(12) { animation-delay: 0.70s; }
-.list-card:nth-child(13) { animation-delay: 0.75s; }
-.list-card:nth-child(14) { animation-delay: 0.80s; grid-column: 1 / -1; }
-
-.list-card:hover { border-color: rgba(201,168,76,0.3); }
-
-.list-card::before {
-  content:'';
-  position:absolute; inset:0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05), transparent 70%);
-  opacity:0; transition:opacity 0.4s;
-}
+h1 { opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+.header-ornament { opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.header-sub { opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+main { max-width:1100px; margin:0 auto; padding:56px 40px 120px; position:relative; z-index:2; }
+.list-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.list-card { background:linear-gradient(135deg,rgba(26,8,16,0.9),rgba(15,5,8,0.95)); border:1px solid rgba(201,168,76,0.08); padding:36px 32px; position:relative; text-decoration:none; color:inherit; display:block; transition:border-color 0.3s; opacity:0; animation:fadeUp 0.6s ease forwards; }
+.list-card:nth-child(1)  { animation-delay:0.15s; }
+.list-card:nth-child(2)  { animation-delay:0.20s; }
+.list-card:nth-child(3)  { animation-delay:0.25s; }
+.list-card:nth-child(4)  { animation-delay:0.30s; }
+.list-card:nth-child(5)  { animation-delay:0.35s; }
+.list-card:nth-child(6)  { animation-delay:0.40s; }
+.list-card:nth-child(7)  { animation-delay:0.45s; }
+.list-card:nth-child(8)  { animation-delay:0.50s; }
+.list-card:nth-child(9)  { animation-delay:0.55s; }
+.list-card:nth-child(10) { animation-delay:0.60s; }
+.list-card:nth-child(11) { animation-delay:0.65s; }
+.list-card:nth-child(12) { animation-delay:0.70s; }
+.list-card:nth-child(13) { animation-delay:0.75s; }
+.list-card:nth-child(14) { animation-delay:0.80s; }
+.list-card:hover { border-color:rgba(201,168,76,0.3); }
+.list-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.05),transparent 70%); opacity:0; transition:opacity 0.4s; }
 .list-card:hover::before { opacity:1; }
-
-/* Corner brackets */
-.list-card::after {
-  content:''; position:absolute; top:10px; left:10px;
-  width:16px; height:16px;
-  border-top:1px solid rgba(201,168,76,0.2);
-  border-left:1px solid rgba(201,168,76,0.2);
-  transition:all 0.3s;
-}
+.list-card::after { content:''; position:absolute; top:10px; left:10px; width:16px; height:16px; border-top:1px solid rgba(201,168,76,0.2); border-left:1px solid rgba(201,168,76,0.2); transition:all 0.3s; }
 .list-card:hover::after { width:22px; height:22px; border-color:var(--gold); }
-
-.card-corner-br {
-  position:absolute; bottom:10px; right:10px;
-  width:16px; height:16px;
-  border-bottom:1px solid rgba(201,168,76,0.2);
-  border-right:1px solid rgba(201,168,76,0.2);
-  transition:all 0.3s; pointer-events:none;
-}
+.card-corner-br { position:absolute; bottom:10px; right:10px; width:16px; height:16px; border-bottom:1px solid rgba(201,168,76,0.2); border-right:1px solid rgba(201,168,76,0.2); transition:all 0.3s; pointer-events:none; }
 .list-card:hover .card-corner-br { width:22px; height:22px; border-color:var(--gold); }
-
 .card-num { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); margin-bottom:12px; }
-
-.card-title {
-  font-family:'Playfair Display',serif;
-  font-size:clamp(20px,2.2vw,26px);
-  font-weight:400;
-  line-height:1.2;
-  margin-bottom:10px;
-  color:var(--cream);
-  transition:color 0.3s;
-}
-
+.card-title { font-family:'Playfair Display',serif; font-size:clamp(20px,2.2vw,26px); font-weight:400; line-height:1.2; margin-bottom:10px; color:var(--cream); transition:color 0.3s; }
 .card-desc { font-size:14px; line-height:1.6; color:var(--cream-muted); margin-bottom:24px; }
-
-.card-enter {
-  display:flex; align-items:center; gap:10px;
-  font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px;
-  color:var(--gold-dim); text-transform:uppercase;
-  transition:all 0.3s;
-}
+.card-enter { display:flex; align-items:center; gap:10px; font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; transition:all 0.3s; }
 .list-card:hover .card-enter { color:var(--gold); gap:14px; }
 .enter-line { width:20px; height:1px; background:currentColor; transition:width 0.3s; }
 .list-card:hover .enter-line { width:32px; }
-
-/* Full-width last card extras */
-.list-card.wide .card-title { font-size: clamp(22px, 2.8vw, 32px); font-style: italic; }
-.list-card.wide .card-desc { max-width: 600px; }
-
-@media (max-width: 680px) {
-  main { padding: 40px 20px 100px; }
-  .list-grid { grid-template-columns: 1fr; }
-  .list-card:nth-child(14) { grid-column: 1; }
-  .nav { padding: 12px 24px; }
+@media (max-width:680px) {
+  main { padding:40px 20px 100px; }
+  .list-grid { grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -319,7 +180,7 @@ main {
       <div class="card-enter"><div class="enter-line"></div>View List</div>
     </a>
 
-    <a class="list-card wide" href="list.html?list=western">
+    <a class="list-card" href="list.html?list=western">
       <div class="card-corner-br"></div>
       <div class="card-num">List 014</div>
       <div class="card-title">25 Greatest Westerns</div>
