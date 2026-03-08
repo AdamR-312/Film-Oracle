@@ -119,8 +119,8 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       <div class="section-meta">v3.0 &nbsp;·&nbsp; 2026</div>
     </div>
     <div class="prose">
-      <p>This is a static site — six HTML files, one GitHub repository, no build tools and nothing to install. Each page is self-contained CSS and JavaScript that runs directly in a browser. It's hosted on GitHub Pages and costs nothing to serve.</p>
-      <p>I built it in raw HTML and CSS because the project didn't need a framework. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and dual filmstrip banner</strong>, which pull live data from TMDB. All external API calls are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
+      <p>This is a static site — seven HTML files, one CSS file, one GitHub repository; no build tools and nothing to install. Each page is self-contained CSS and JavaScript that runs directly in a browser. It's hosted on GitHub Pages and costs nothing to serve.</p>
+      <p>I built it in raw HTML and CSS. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and dual filmstrip banner</strong>, which pull live data from TMDB. All external API calls are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
       <p>The Grand Lobby header carries two animated filmstrips — one along the top edge showing films trending this week, one along the bottom showing upcoming releases. Hovering any poster pauses the strip and surfaces a popup card showing the film's title, year, rating, and synopsis. The Oracle result card similarly uses TMDB to load a hi-res poster, a backdrop image, a YouTube trailer link, and a grid of three similar films — all fetched in a single batched API call using <strong>append_to_response</strong>.</p>
       <p>The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate decision to make the site feel like a place rather than a page. Every design choice was made to support that.</p>
     </div>
@@ -136,7 +136,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     </div>
 
     <div class="prose">
-      <p>Every page shares the same design system — CSS variables, typefaces, floor and ceiling strips, curtain animation — but each has its own layout and purpose. There's no shared stylesheet; each file is fully standalone so any page can be opened in isolation without broken references.</p>
+      <p>Every page shares the same design system — CSS variables, typefaces, floor and ceiling strips, curtain animation — but each has its own layout and purpose. A shared style sheet has been created to centralize styling when possible</p>
     </div>
 
     <div class="sitemap">
@@ -259,7 +259,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     </div>
 
     <div class="prose">
-      <p>The Oracle is a 14-question form that collects enough signal about a viewer's current mood and taste to make a single confident film recommendation. The submit button stays locked until all 14 are answered — the recommendation is only as good as the input, and partial answers produce worse results than no answer at all.</p>
+      <p>The Oracle is a 14-question form that collects enough signal about a viewer's current mood and taste to make a single confident film recommendation. The submit button stays locked until all 14 are answered — the recommendation quality can be dependant on input quality.</p>
       <p>The questions are split into four groups: <strong>taste anchors</strong> (a personal masterpiece and a film the user thinks is overrated — together these triangulate aesthetic position more efficiently than any genre checkbox), <strong>emotional state</strong> (weight tolerance, desired runtime, hope at the end), <strong>preferences</strong> (genre, themes, subtitles, pace, protagonist type, obscurity), and <strong>open-ended intent</strong> (what to avoid, what they want the film to do to them).</p>
     </div>
 
