@@ -43,7 +43,7 @@ h1 { font-size:clamp(52px,9vw,110px); text-shadow:0 0 80px rgba(201,168,76,0.12)
 .room.feature { grid-column:1/-1; }
 .room { position:relative; overflow:hidden; cursor:pointer; text-decoration:none; display:block; opacity:0; animation:revealRoom 0.7s ease forwards; background:linear-gradient(135deg,rgba(26,8,16,0.95),rgba(15,5,8,0.98)); border:1px solid rgba(201,168,76,0.08); transition:border-color 0.4s ease; }
 .room:hover { border-color:rgba(201,168,76,0.3); }
-.room.feature{animation-delay:3.4s} .room:nth-child(2){animation-delay:3.6s} .room:nth-child(3){animation-delay:3.7s} .room:nth-child(4){animation-delay:3.8s} .room:nth-child(5){animation-delay:3.9s}
+.room.feature{animation-delay:3.4s} .room:nth-child(2){animation-delay:3.6s} .room:nth-child(3){animation-delay:3.7s} .room:nth-child(4){animation-delay:3.8s} .room:nth-child(5){animation-delay:3.9s} .room:nth-child(6){animation-delay:4.0s}
 @keyframes revealRoom { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 .room::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.06) 0%,transparent 70%); opacity:0; transition:opacity 0.5s; z-index:0; }
 .room:hover::before { opacity:1; }
@@ -272,6 +272,29 @@ footer::before { content:''; position:absolute; top:-1px; left:50%; transform:tr
       <div class="room-enter">
         <div class="enter-line"></div>
         Explore
+      </div>
+    </div>
+  </a>
+
+  <!-- The Archive -->
+  <a class="room" href="classic.html">
+    <div class="room-corner-br"></div>
+    <div class="room-inner">
+      <div class="room-num">Screening Room No. 5</div>
+      <div class="room-status showing">
+        <div class="status-dot pulse"></div>
+        Now Showing
+      </div>
+      <div class="room-title">The Archive</div>
+      <div class="feature-tags">
+        <span class="tag">Public Domain</span>
+        <span class="tag">Internet Archive</span>
+        <span class="tag">No Account Required</span>
+      </div>
+      <p class="room-desc">Public domain cinema from the silent era through the golden age of Hollywood. Watch Nosferatu, Metropolis, Night of the Living Dead, and hundreds more — freely, in your browser.</p>
+      <div class="room-enter">
+        <div class="enter-line"></div>
+        Enter the Archive
       </div>
     </div>
   </a>

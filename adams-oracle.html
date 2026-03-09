@@ -119,7 +119,13 @@ h1 .gold { color:var(--gold); font-style:italic; }
 .now-showing::before,.now-showing::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-pale)); }
 .now-showing::after { background:linear-gradient(270deg,transparent,var(--gold-pale)); }
 #result-title { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,52px); font-weight:400; font-style:italic; color:var(--cream); line-height:1.1; margin-bottom:10px; }
-#result-director { font-family:'Cinzel',serif; font-size:11px; letter-spacing:3px; color:var(--gold-dim); margin-bottom:32px; text-transform:uppercase; }
+#result-director { font-family:'Cinzel',serif; font-size:11px; letter-spacing:3px; color:var(--gold-dim); margin-bottom:14px; text-transform:uppercase; }
+#director-bio { display:none; margin-bottom:28px; }
+.dir-bio-inner { display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(201,168,76,0.07); }
+.dir-thumb { width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0; border:1px solid rgba(201,168,76,0.18); filter:saturate(0.7) brightness(0.85); }
+.dir-extract { font-family:'EB Garamond',serif; font-size:14px; line-height:1.65; color:var(--cream-muted); margin-bottom:7px; }
+.dir-wiki-link { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.2s; }
+.dir-wiki-link:hover { color:var(--gold); }
 #result-why { font-size:18px; line-height:1.8; color:var(--cream-dim); margin-bottom:24px; border-top:1px solid var(--gold-pale); padding-top:28px; }
 #result-find { font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; color:var(--gold-dim); border-top:1px solid rgba(201,168,76,0.1); padding-top:20px; }
 .question:nth-child(1){animation-delay:3.2s} .question:nth-child(2){animation-delay:3.3s} .question:nth-child(3){animation-delay:3.4s} .question:nth-child(4){animation-delay:3.5s} .question:nth-child(5){animation-delay:3.6s} .question:nth-child(6){animation-delay:3.7s} .question:nth-child(7){animation-delay:3.8s} .question:nth-child(8){animation-delay:3.9s} .question:nth-child(9){animation-delay:4.0s} .question:nth-child(10){animation-delay:4.1s} .question:nth-child(11){animation-delay:4.2s} .question:nth-child(12){animation-delay:4.3s} .question:nth-child(13){animation-delay:4.4s} .question:nth-child(14){animation-delay:4.5s}
@@ -408,6 +414,15 @@ h1 .gold { color:var(--gold); font-style:italic; }
         <div class="now-showing">Now Showing</div>
         <div id="result-title"></div>
         <div id="result-director"></div>
+        <div id="director-bio">
+          <div class="dir-bio-inner">
+            <img class="dir-thumb" id="dir-thumb" src="" alt="" style="display:none;">
+            <div>
+              <p class="dir-extract" id="dir-extract"></p>
+              <a class="dir-wiki-link" id="dir-wiki-link" href="#" target="_blank" rel="noopener noreferrer">Read more on Wikipedia ↗</a>
+            </div>
+          </div>
+        </div>
         <div id="result-why"></div>
         <div id="result-find"></div>
         <div style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid rgba(201,168,76,0.1);padding-top:22px;">
@@ -549,6 +564,8 @@ h1 .gold { color:var(--gold); font-style:italic; }
     document.getElementById('similar-grid').innerHTML = '';
     const trailerReset = document.getElementById('result-trailer');
     if (trailerReset) { trailerReset.style.display = 'none'; trailerReset.href = '#'; }
+    document.getElementById('director-bio').style.display = 'none';
+    document.getElementById('dir-thumb').style.display = 'none';
 
     const optLabels = {};
     document.querySelectorAll('.opt').forEach(o => { optLabels[o.dataset.val] = o.textContent.trim(); });
@@ -629,6 +646,30 @@ Their questionnaire answers:
       document.getElementById('result-director').textContent = dirM ? `Directed by ${dirM[1].trim()}` : '';
       document.getElementById('result-why').textContent = whyM ? whyM[1].trim() : text;
       document.getElementById('result-find').textContent = findM ? findM[1].trim() : '';
+
+      // ── Wikipedia: director bio (no proxy — open API, called directly) ──
+      if (dirM) {
+        const dirName   = dirM[1].trim();
+        const wikiTitle = encodeURIComponent(dirName.replace(/\s+/g, '_'));
+        fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${wikiTitle}`)
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(data => {
+            if (!data || data.type === 'disambiguation' || !data.extract) return;
+            document.getElementById('dir-extract').textContent =
+              data.extract.length > 280 ? data.extract.slice(0, 280) + '…' : data.extract;
+            if (data.thumbnail && data.thumbnail.source) {
+              const t = document.getElementById('dir-thumb');
+              t.src = data.thumbnail.source;
+              t.style.display = 'block';
+            }
+            document.getElementById('dir-wiki-link').href =
+              data.content_urls && data.content_urls.desktop
+                ? data.content_urls.desktop.page
+                : `https://en.wikipedia.org/wiki/${wikiTitle}`;
+            document.getElementById('director-bio').style.display = 'block';
+          })
+          .catch(() => {});
+      }
 
       const cleanTitle = titleText.replace(/\s*\(\d{4}\)/, '').trim();
       const searchTitle = encodeURIComponent(cleanTitle);

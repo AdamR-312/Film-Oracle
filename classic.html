@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Archive — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+.header-ornament { opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.header-sub { opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+main { max-width:1200px; margin:0 auto; padding:64px 48px 120px; position:relative; z-index:2; }
+/* ── Filter bar ─────────────────────────────────────────────────────── */
+.filter-bar { display:flex; align-items:center; gap:2px; flex-wrap:wrap; margin-bottom:48px; padding-bottom:24px; border-bottom:1px solid rgba(201,168,76,0.08); opacity:0; animation:fadeUp 0.7s ease forwards 1s; }
+.filter-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color:var(--cream-muted); text-transform:uppercase; margin-right:12px; white-space:nowrap; }
+.filter-btn { font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px; color:var(--cream-muted); text-transform:uppercase; border:1px solid transparent; padding:8px 16px; background:none; cursor:pointer; transition:all 0.25s; }
+.filter-btn:hover { color:var(--cream); border-color:rgba(201,168,76,0.15); }
+.filter-btn.active { color:var(--gold); border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.04); }
+/* ── Film grid ──────────────────────────────────────────────────────── */
+.archive-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+.film-card { background:linear-gradient(135deg,rgba(26,8,16,0.92),rgba(15,5,8,0.96)); border:1px solid rgba(201,168,76,0.06); cursor:pointer; transition:border-color 0.3s; position:relative; overflow:hidden; }
+.film-card:hover { border-color:rgba(201,168,76,0.25); }
+.film-card::after { content:''; position:absolute; bottom:10px; right:10px; width:14px; height:14px; border-bottom:1px solid rgba(201,168,76,0.18); border-right:1px solid rgba(201,168,76,0.18); transition:all 0.3s; pointer-events:none; }
+.film-card:hover::after { width:20px; height:20px; border-color:var(--gold-dim); }
+.film-thumb-wrap { width:100%; aspect-ratio:4/3; overflow:hidden; background:rgba(26,8,16,0.8); display:flex; align-items:center; justify-content:center; }
+.film-thumb { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(0.4) brightness(0.65) sepia(0.3); transition:filter 0.35s; }
+.film-card:hover .film-thumb { filter:saturate(0.9) brightness(0.95); }
+.film-no-thumb { color:rgba(201,168,76,0.08); font-size:32px; }
+.film-info { padding:16px 18px 20px; }
+.film-title { font-family:'Playfair Display',serif; font-size:14px; font-style:italic; color:var(--cream); line-height:1.3; margin-bottom:5px; }
+.film-meta { font-family:'Cinzel',serif; font-size:7.5px; letter-spacing:2px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:8px; }
+.film-desc { font-family:'EB Garamond',serif; font-size:13px; line-height:1.55; color:var(--cream-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:12px; }
+.watch-btn { display:flex; align-items:center; gap:10px; font-family:'Cinzel',serif; font-size:8px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; transition:all 0.3s; }
+.watch-line { width:20px; height:1px; background:currentColor; transition:width 0.3s; }
+.film-card:hover .watch-btn { color:var(--gold); gap:14px; }
+.film-card:hover .watch-line { width:30px; }
+/* ── Loading / empty states ─────────────────────────────────────────── */
+.state-msg { text-align:center; padding:80px 20px; font-family:'Cinzel',serif; font-size:10px; letter-spacing:5px; color:var(--gold-dim); text-transform:uppercase; grid-column:1/-1; }
+.state-msg::after { content:''; display:block; width:40px; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim),transparent); margin:20px auto 0; animation:shimmer 1.5s ease infinite; }
+@keyframes shimmer { 0%,100%{opacity:0.3} 50%{opacity:1} }
+/* ── Attribution ────────────────────────────────────────────────────── */
+.attribution { font-family:'Cinzel',serif; font-size:7.5px; letter-spacing:3px; color:var(--cream-muted); opacity:0.35; text-transform:uppercase; text-align:center; margin-top:48px; }
+footer { border-top:1px solid rgba(201,168,76,0.08); }
+/* ── Lightbox ───────────────────────────────────────────────────────── */
+#lightbox { position:fixed; inset:0; z-index:900; display:none; align-items:center; justify-content:center; }
+#lightbox.open { display:flex; }
+.lb-backdrop { position:absolute; inset:0; background:rgba(5,3,2,0.94); cursor:pointer; }
+.lb-content { position:relative; z-index:1; width:min(880px,94vw); background:linear-gradient(145deg,rgba(18,6,12,0.99),rgba(8,3,5,0.99)); border:1px solid rgba(201,168,76,0.22); box-shadow:0 0 80px rgba(0,0,0,0.8); max-height:92vh; overflow-y:auto; }
+.lb-content::before,.lb-content::after { content:''; position:absolute; width:16px; height:16px; border-color:rgba(201,168,76,0.5); border-style:solid; pointer-events:none; z-index:2; }
+.lb-content::before { top:-1px; left:-1px; border-width:1px 0 0 1px; }
+.lb-content::after { bottom:-1px; right:-1px; border-width:0 1px 1px 0; }
+.lb-player { width:100%; aspect-ratio:16/9; background:#000; }
+.lb-player iframe { width:100%; height:100%; border:none; display:block; }
+.lb-details { padding:20px 28px 26px; border-top:1px solid rgba(201,168,76,0.08); }
+.lb-title { font-family:'Playfair Display',serif; font-size:22px; font-style:italic; color:var(--cream); margin-bottom:6px; line-height:1.2; }
+.lb-meta { font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:12px; }
+.lb-desc { font-family:'EB Garamond',serif; font-size:15px; line-height:1.7; color:var(--cream-muted); margin-bottom:16px; }
+.lb-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.lb-archive-link { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.2s; border:1px solid rgba(201,168,76,0.15); padding:8px 16px; }
+.lb-archive-link:hover { color:var(--gold); border-color:rgba(201,168,76,0.35); }
+.lb-pd-badge { font-family:'Cinzel',serif; font-size:7px; letter-spacing:2px; color:var(--cream-muted); opacity:0.4; text-transform:uppercase; }
+.lb-close { position:absolute; top:12px; right:16px; font-family:'Cinzel',serif; font-size:9px; letter-spacing:2px; color:var(--gold-dim); cursor:pointer; background:none; border:none; text-transform:uppercase; transition:color 0.25s; z-index:3; padding:8px; }
+.lb-close:hover { color:var(--gold); }
+@media(max-width:900px) {
+  .archive-grid { grid-template-columns:repeat(2,1fr); }
+  main { padding:48px 24px 100px; }
+}
+@media(max-width:500px) {
+  .archive-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">The Archive</span>
+</nav>
+
+<header>
+  <div class="room-label">Screening Room No. 5</div>
+  <h1>The <em>Archive</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">Public domain cinema. No account. No subscription. Just the films.</p>
+</header>
+
+<main>
+
+  <div class="filter-bar">
+    <span class="filter-label">Browse by era</span>
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="silent">Silent Era</button>
+    <button class="filter-btn" data-filter="classic">Classic Hollywood</button>
+    <button class="filter-btn" data-filter="noir">Noir</button>
+    <button class="filter-btn" data-filter="horror">Horror</button>
+    <button class="filter-btn" data-filter="scifi">Sci-Fi</button>
+  </div>
+
+  <div class="archive-grid" id="archiveGrid">
+    <div class="state-msg">Loading the archive</div>
+  </div>
+
+  <p class="attribution">Films sourced from the Internet Archive — public domain works freely available under their respective terms &nbsp;·&nbsp; No authentication required</p>
+
+</main>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;·&nbsp; No outside food or drink</div>
+</footer>
+
+<!-- Lightbox player -->
+<div id="lightbox">
+  <div class="lb-backdrop" id="lbBackdrop"></div>
+  <div class="lb-content">
+    <button class="lb-close" id="lbClose">✕ Close</button>
+    <div class="lb-player">
+      <iframe id="lb-iframe" src="" allowfullscreen allow="autoplay"></iframe>
+    </div>
+    <div class="lb-details">
+      <div class="lb-title" id="lb-title"></div>
+      <div class="lb-meta" id="lb-meta"></div>
+      <div class="lb-desc" id="lb-desc"></div>
+      <div class="lb-footer">
+        <a class="lb-archive-link" id="lb-link" href="#" target="_blank" rel="noopener noreferrer">View on Internet Archive ↗</a>
+        <span class="lb-pd-badge">Public Domain</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Internet Archive: no API key, no proxy needed ───────────────────────
+  const ARCHIVE = 'https://archive.org';
+
+  const FILTERS = {
+    all:     'collection:feature_films+mediatype:movies',
+    silent:  'collection:feature_films+mediatype:movies+year:[1900+TO+1929]',
+    classic: 'collection:feature_films+mediatype:movies+year:[1930+TO+1959]',
+    noir:    'mediatype:movies+subject:film+noir',
+    horror:  'collection:feature_films+mediatype:movies+subject:horror',
+    scifi:   'collection:feature_films+mediatype:movies+subject:science+fiction'
+  };
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  }
+
+  function cleanHtml(s) {
+    return String(s || '').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+  }
+
+  function buildCard(f) {
+    const id      = f.identifier || '';
+    const title   = f.title || 'Untitled';
+    const creator = Array.isArray(f.creator) ? f.creator[0] : (f.creator || '');
+    const year    = f.date ? String(f.date).slice(0,4) : '';
+    const rawDesc = Array.isArray(f.description) ? f.description[0] : (f.description || '');
+    const desc    = cleanHtml(rawDesc).slice(0, 200);
+    const thumb   = `${ARCHIVE}/services/img/${id}`;
+
+    return `<div class="film-card"
+      data-id="${esc(id)}" data-title="${esc(title)}"
+      data-creator="${esc(creator)}" data-year="${esc(year)}"
+      data-desc="${esc(desc)}">
+      <div class="film-thumb-wrap">
+        <img class="film-thumb" src="${thumb}" alt="${esc(title)}" loading="lazy"
+          onerror="this.parentElement.innerHTML='<div class=film-no-thumb>✦</div>'">
+      </div>
+      <div class="film-info">
+        <div class="film-title">${esc(title)}</div>
+        <div class="film-meta">${[esc(creator), esc(year)].filter(Boolean).join(' · ')}</div>
+        ${desc ? `<p class="film-desc">${esc(desc)}</p>` : ''}
+        <div class="watch-btn"><div class="watch-line"></div>Watch Now</div>
+      </div>
+    </div>`;
+  }
+
+  async function loadFilms(filterKey) {
+    const grid = document.getElementById('archiveGrid');
+    grid.innerHTML = '<div class="state-msg">Loading the archive</div>';
+
+    const url = `${ARCHIVE}/advancedsearch.php?q=${encodeURIComponent(FILTERS[filterKey])}&output=json&rows=24&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=date&fl[]=description&sort[]=downloads+desc`;
+
+    try {
+      const res  = await fetch(url);
+      const data = await res.json();
+      const docs = (data.response && data.response.docs) || [];
+
+      if (!docs.length) {
+        grid.innerHTML = '<div class="state-msg">No films found for this filter</div>';
+        return;
+      }
+
+      grid.innerHTML = docs.map(f => buildCard(f)).join('');
+      grid.querySelectorAll('.film-card').forEach(card => {
+        card.addEventListener('click', () => openLightbox(
+          card.dataset.id,
+          card.dataset.title,
+          card.dataset.creator,
+          card.dataset.year,
+          card.dataset.desc
+        ));
+      });
+
+    } catch(e) {
+      grid.innerHTML = '<div class="state-msg">Could not reach the archive — please try again</div>';
+    }
+  }
+
+  function openLightbox(id, title, creator, year, desc) {
+    document.getElementById('lb-iframe').src = `${ARCHIVE}/embed/${id}`;
+    document.getElementById('lb-title').textContent = title;
+    document.getElementById('lb-meta').textContent  = [creator, year].filter(Boolean).join(' · ');
+    document.getElementById('lb-desc').textContent  = desc || '';
+    document.getElementById('lb-link').href = `${ARCHIVE}/details/${id}`;
+    document.getElementById('lightbox').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    document.getElementById('lb-iframe').src = '';
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadFilms(btn.dataset.filter);
+    });
+  });
+
+  document.getElementById('lbBackdrop').addEventListener('click', closeLightbox);
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+  loadFilms('all');
+</script>
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+
+  var fills   = document.querySelectorAll('.rail-fill');
+  var markers = document.querySelectorAll('.rail-marker');
+  var glows   = document.querySelectorAll('.rail-glow');
+
+  function update(){
+    var s = window.scrollY;
+    var maxS = document.documentElement.scrollHeight - window.innerHeight;
+    var p = maxS > 0 ? Math.min(1, Math.max(0, s / maxS)) : 0;
+    fills.forEach(function(f){ f.style.height = (p*100)+'%'; });
+    var markerY = 80 + p * (window.innerHeight - 160);
+    markers.forEach(function(m){ m.style.top = markerY+'px'; });
+    if(glows[0]) glows[0].style.top = (8  + p*54)+'%';
+    if(glows[1]) glows[1].style.top = (22 + p*52)+'%';
+  }
+
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  update();
+
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        markers.forEach(function(m){
+          m.classList.add('pulsing');
+          setTimeout(function(){ m.classList.remove('pulsing'); }, 500);
+        });
+      }
+    });
+  },{threshold:0.2, rootMargin:'-8% 0px -8% 0px'});
+
+  document.querySelectorAll('h1, h2, header').forEach(function(el){ obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>

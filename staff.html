@@ -121,7 +121,8 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     <div class="prose">
       <p>This is a static site — seven HTML files, one CSS file, one GitHub repository; no build tools and nothing to install. Each page is self-contained CSS and JavaScript that runs directly in a browser. It's hosted on GitHub Pages and costs nothing to serve.</p>
       <p>I built it in raw HTML and CSS. There's no state to manage across routes, no component reuse that would justify the overhead, and no team maintaining it. A single file that opens in a browser is the right tool. The places where the static constraint breaks are the <strong>Movie Oracle</strong>, which makes a live call to the Anthropic API on submission, and the <strong>Top 25 lists and dual filmstrip banner</strong>, which pull live data from TMDB. All external API calls are handled through Cloudflare Workers so no API keys appear in client-side code.</p>
-      <p>The Grand Lobby header carries two animated filmstrips — one along the top edge showing films trending this week, one along the bottom showing upcoming releases. Hovering any poster pauses the strip and surfaces a popup card showing the film's title, year, rating, and synopsis. The Oracle result card similarly uses TMDB to load a hi-res poster, a backdrop image, a YouTube trailer link, and a grid of three similar films — all fetched in a single batched API call using <strong>append_to_response</strong>.</p>
+      <p>A fifth room — <strong>The Archive</strong> — serves public domain films directly from the Internet Archive. It fetches film metadata and thumbnails from archive.org with no API key and no proxy, then embeds the selected film in a lightbox player. This is a deliberate contrast to the proxied calls elsewhere: the Internet Archive is an open, credential-free API, and calling it directly from the browser is correct — no key to protect, no proxy needed.</p>
+      <p>The Grand Lobby header carries two animated filmstrips — one along the top edge showing films trending this week, one along the bottom showing upcoming releases. Hovering any poster pauses the strip and surfaces a popup card showing the film's title, year, rating, and synopsis. The Oracle result card uses TMDB to load a hi-res poster, backdrop, trailer link, and similar films via a single batched <strong>append_to_response</strong> call. It also pulls a director biography and portrait from the <strong>Wikipedia REST API</strong> — an open, key-free endpoint called directly from the browser, with no proxy required.</p>
       <p>The aesthetic — velvet, gold, dimmed marquee lights, opening curtains — was a deliberate decision to make the site feel like a place rather than a page. Every design choice was made to support that.</p>
     </div>
   </div>
@@ -186,6 +187,12 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       </div>
       <div class="map-file">
         <div class="map-indent"></div>
+        <div class="map-filename">classic.html</div>
+        <div class="map-filedesc">The Archive — Internet Archive public domain film browser with lightbox player</div>
+        <div class="map-status live">Live</div>
+      </div>
+      <div class="map-file">
+        <div class="map-indent"></div>
         <div class="map-filename">style.css</div>
         <div class="map-filedesc">Shared design system — CSS variables, curtains, ceiling/floor, theatre rails, nav</div>
         <div class="map-status live">Live</div>
@@ -245,6 +252,14 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       <div class="tech-card">
         <div class="tech-name">Letterboxd Export</div>
         <div class="tech-desc">The Collection page is built from a real Letterboxd data export — ratings, curated lists, watch history. The CSV data was parsed and hardcoded into the HTML, so the page needs no live data connection and loads instantly. To update it, re-export from Letterboxd and re-run the parse.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Wikipedia REST API</div>
+        <div class="tech-desc">When the Oracle returns a recommendation, the director's name is sent directly to <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">en.wikipedia.org/api/rest_v1/page/summary/{name}</code> — no proxy, no API key. The response includes a biography extract and portrait thumbnail, displayed as a panel below the director credit. This is a deliberate contrast: Wikipedia's REST API is fully open with CORS support, so routing it through a proxy would add latency for no security benefit.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-name">Internet Archive API</div>
+        <div class="tech-desc">The Archive page queries <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/advancedsearch.php</code> directly from the browser — no key, no proxy. Film thumbnails are served from <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/services/img/{id}</code> and the selected film plays via an <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/embed/{id}</code> iframe. The Internet Archive is a credential-free public API; calling it client-side is the correct pattern.</div>
       </div>
     </div>
   </div>
