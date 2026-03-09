@@ -52,7 +52,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
 .question { margin-bottom:56px; opacity:0; animation:revealUp 0.6s ease forwards; position:relative; }
 .question::before { content:''; position:absolute; left:-24px; top:8px; width:1px; height:calc(100% - 8px); background:linear-gradient(180deg,var(--gold-pale),transparent); }
 .q-header { display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
-.q-num { font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold); flex-shrink:0; }
+.q-num { font-family:'Cinzel',serif; font-size:10px; letter-spacing:3px; color:var(--gold-bright); flex-shrink:0; text-shadow:0 0 12px rgba(232,200,106,0.5); }
 .q-text { font-family:'Playfair Display',serif; font-size:26px; font-weight:400; line-height:1.3; color:var(--cream); }
 .q-sub { font-style:italic; font-size:17px; color:var(--cream-muted); margin-top:8px; margin-left:46px; }
 .runtime-range { display:flex; align-items:flex-end; margin-left:46px; width:calc(100% - 46px); }
@@ -115,7 +115,7 @@ h1 .gold { color:var(--gold); font-style:italic; }
 .result-corners::before,.result-corners::after { content:''; position:absolute; width:20px; height:20px; border-color:var(--gold); border-style:solid; }
 .result-corners::before { top:-1px; right:-1px; border-width:2px 2px 0 0; }
 .result-corners::after { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
-.now-showing { font-family:'Cinzel',serif; font-size:9px; letter-spacing:6px; color:var(--gold); text-transform:uppercase; margin-bottom:28px; display:flex; align-items:center; gap:14px; }
+.now-showing { font-family:'Cinzel',serif; font-size:9px; letter-spacing:6px; color:var(--gold-bright); text-transform:uppercase; margin-bottom:28px; display:flex; align-items:center; gap:14px; text-shadow:0 0 14px rgba(232,200,106,0.55); }
 .now-showing::before,.now-showing::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--gold-pale)); }
 .now-showing::after { background:linear-gradient(270deg,transparent,var(--gold-pale)); }
 #result-title { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,52px); font-weight:400; font-style:italic; color:var(--cream); line-height:1.1; margin-bottom:10px; }
