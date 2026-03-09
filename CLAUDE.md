@@ -2,6 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Pipeline
+
+All improvements to Adam's Cinema follow this five-stage pipeline using custom skills. **Do not skip stages.**
+
+```
+/architect → approve idea → /builder → /reviewer → /archivist → /ruca
+```
+
+| Stage | Skill | Purpose |
+|---|---|---|
+| 1 | `/architect` | Reads the full codebase, proposes 5–8 ranked feature ideas |
+| 2 | *(approval)* | User selects an idea before any code is written |
+| 3 | `/builder` | Implements the feature with a TodoWrite checklist, following all conventions |
+| 4 | `/reviewer` | Audits new/modified code for security, structure, and design — outputs PASS/FAIL |
+| 5 | `/archivist` | Updates staff.html, README.md, and MEMORY.md to reflect the new feature |
+| 6 | `/ruca` | Verifies all edits, then pushes to GitHub only if all checks pass |
+
+Skills are defined in [.claude/skills/](.claude/skills/). `/reviewer` must PASS before `/archivist` runs. `/ruca` must PASS before any push occurs.
+
+---
+
 ## Project Overview
 
 **Adam's Cinema** — a static, no-build HTML/CSS/JS movie website with a vintage cinema aesthetic. There is no package manager, build step, or framework. Open any `.html` file directly in a browser.
@@ -15,18 +36,24 @@ All pages share one stylesheet ([style.css](style.css)) for the cinema theme (ve
 | File | Purpose |
 |---|---|
 | [index.html](index.html) | Grand Lobby — navigation hub linking all rooms |
-| [adams-oracle.html](adams-oracle.html) | AI movie recommender — 13-question quiz → Claude API |
+| [adams-oracle.html](adams-oracle.html) | AI movie recommender — 14-question quiz → Claude API |
 | [collection.html](collection.html) | Adam's curated personal film collection |
 | [top25.html](top25.html) | Ranked genre/era/director lists |
+| [list.html](list.html) | Universal list renderer — loaded via URL params from top25 |
 | [indie.html](indie.html) | Independent & local theatre guide |
-| [staff.html](staff.html) | About page |
+| [classic.html](classic.html) | Internet Archive public domain film browser |
+| [concession.html](concession.html) | Fill-in-the-blank famous movie quotes game via Claude |
+| [sixdegrees.html](sixdegrees.html) | Six Degrees of Cinema — thematic chain builder via Claude |
+| [staff.html](staff.html) | Technical showcase / about page |
 
 ### External Services
 
 Two Cloudflare Workers proxy all external API calls (no keys exposed client-side):
 
-- **`https://oracle-proxy.adamrowe312.workers.dev`** — proxies Anthropic Claude API (`claude-sonnet-4-20250514`). Called by the oracle when the user submits their 13 answers.
-- **`https://tmdb-proxy.adamrowe312.workers.dev`** — proxies TMDB API. Used for: now-playing filmstrip (index), movie poster + backdrop (oracle result), similar films grid (oracle result), and collection posters.
+- **`https://oracle-proxy.adamrowe312.workers.dev`** — proxies Anthropic Claude API (`claude-sonnet-4-20250514`). Used by: Oracle (recommendation), Concession Stand (in-character quote responses), Six Degrees (chain building), Oracle Dossier (viewing guide second call).
+- **`https://tmdb-proxy.adamrowe312.workers.dev`** — proxies TMDB API. Used for: trending/upcoming filmstrips (index), movie poster + backdrop (oracle result), similar films grid (oracle result), and collection posters.
+- **Wikipedia REST API** — `en.wikipedia.org/api/rest_v1/page/summary/{name}` — called directly from browser (open CORS, no key). Used for director bio panel in Oracle.
+- **Internet Archive API** — `archive.org/advancedsearch.php` — called directly from browser (no credentials). Used by classic.html for public domain film browsing.
 
 ### Design System (style.css)
 
@@ -40,11 +67,13 @@ Shared structural elements (ceiling bar, floor stripe, curtains, scroll-rail) ar
 
 ### Oracle Flow (adams-oracle.html)
 
-1. User answers 13 questions (multi-select, scale, text, dropdowns)
+1. User answers 14 questions (multi-select, scale, text, dropdowns)
 2. JS collects answers → POST to `oracle-proxy` Worker with a detailed system prompt
 3. Worker calls Claude → returns `{ title, director, year, why, find }` JSON
 4. JS fetches TMDB for poster + backdrop image, renders result card
 5. JS fetches TMDB recommendations for a 3-card "similar films" grid
+6. Second Claude call fires (max_tokens:180) → generates "On This Film" viewing dossier
+7. Wikipedia fetch → renders director bio panel
 
 ### Filmstrip (index.html)
 
