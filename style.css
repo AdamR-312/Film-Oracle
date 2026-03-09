@@ -49,6 +49,29 @@ body::before {
   z-index: 500;
 }
 
+/* ── AMBIENT LIGHTING ──────────────────────────────── */
+/* Slow-drifting colour pools — visible through glass cards */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 22% 28%, rgba(201,168,76,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 65% at 78% 62%, rgba(107,15,26,0.24) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 52% 88%, rgba(139,26,40,0.14) 0%, transparent 55%);
+  animation: ambientDrift 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+@keyframes ambientDrift {
+  0%,  100% { transform: translate(0,    0);    }
+  25%        { transform: translate(2.5%, -1.5%); }
+  50%        { transform: translate(-1.5%, 2.5%); }
+  75%        { transform: translate(1.5%,  1.5%); }
+}
+
 /* ── CEILING & FLOOR ───────────────────────────────── */
 .ceiling {
   position: fixed;
