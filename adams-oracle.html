@@ -127,7 +127,10 @@ h1 .gold { color:var(--gold); font-style:italic; }
 .dir-wiki-link { font-family:'Cinzel',serif; font-size:8px; letter-spacing:2px; color:var(--gold-dim); text-decoration:none; text-transform:uppercase; transition:color 0.2s; }
 .dir-wiki-link:hover { color:var(--gold); }
 #result-why { font-size:18px; line-height:1.8; color:var(--cream-dim); margin-bottom:24px; border-top:1px solid var(--gold-pale); padding-top:28px; }
-#result-find { font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; color:var(--gold-dim); border-top:1px solid rgba(201,168,76,0.1); padding-top:20px; }
+#result-find { font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; color:var(--gold-dim); border-top:1px solid rgba(201,168,76,0.1); padding-top:20px; margin-bottom:0; }
+#dossier-section { display:none; margin-top:24px; padding-top:22px; border-top:1px solid rgba(201,168,76,0.08); }
+.dossier-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-bottom:10px; text-shadow:0 0 10px rgba(201,168,76,0.4); }
+.dossier-text { font-family:'EB Garamond',Georgia,serif; font-size:18px; font-style:italic; color:var(--cream-muted); line-height:1.75; }
 .question:nth-child(1){animation-delay:3.2s} .question:nth-child(2){animation-delay:3.3s} .question:nth-child(3){animation-delay:3.4s} .question:nth-child(4){animation-delay:3.5s} .question:nth-child(5){animation-delay:3.6s} .question:nth-child(6){animation-delay:3.7s} .question:nth-child(7){animation-delay:3.8s} .question:nth-child(8){animation-delay:3.9s} .question:nth-child(9){animation-delay:4.0s} .question:nth-child(10){animation-delay:4.1s} .question:nth-child(11){animation-delay:4.2s} .question:nth-child(12){animation-delay:4.3s} .question:nth-child(13){animation-delay:4.4s} .question:nth-child(14){animation-delay:4.5s}
 /* ── Oracle result: poster + backdrop ──────────── */
 #result { overflow:hidden; }
@@ -425,6 +428,10 @@ h1 .gold { color:var(--gold); font-style:italic; }
         </div>
         <div id="result-why"></div>
         <div id="result-find"></div>
+        <div id="dossier-section">
+          <div class="dossier-label">On This Film</div>
+          <p id="result-dossier" class="dossier-text"></p>
+        </div>
         <div style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid rgba(201,168,76,0.1);padding-top:22px;">
           <a id="result-link" href="#" target="_blank" rel="noopener noreferrer" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;border:1px solid rgba(201,168,76,0.2);padding:10px 18px;transition:all 0.3s;display:inline-block;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(201,168,76,0.2)';this.style.color='var(--gold-dim)'">More Info ↗</a>
           <a id="result-trailer" href="#" target="_blank" rel="noopener noreferrer" style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--crimson-bright);text-decoration:none;text-transform:uppercase;border:1px solid rgba(139,26,40,0.35);padding:10px 18px;transition:all 0.3s;display:none;" onmouseover="this.style.borderColor='var(--crimson-bright)';this.style.color='#c0304a'" onmouseout="this.style.borderColor='rgba(139,26,40,0.35)';this.style.color='var(--crimson-bright)'">▶ Trailer</a>
@@ -566,6 +573,8 @@ h1 .gold { color:var(--gold); font-style:italic; }
     if (trailerReset) { trailerReset.style.display = 'none'; trailerReset.href = '#'; }
     document.getElementById('director-bio').style.display = 'none';
     document.getElementById('dir-thumb').style.display = 'none';
+    document.getElementById('dossier-section').style.display = 'none';
+    document.getElementById('result-dossier').textContent = '';
 
     const optLabels = {};
     document.querySelectorAll('.opt').forEach(o => { optLabels[o.dataset.val] = o.textContent.trim(); });
@@ -743,6 +752,27 @@ Their questionnaire answers:
           }
         }
       } catch(_) { /* TMDB fetch failed silently — Oracle result intact */ }
+
+      // ── Second Claude call: viewing dossier ────────────────────────────
+      try {
+        const cleanYear   = yearMatch ? yearMatch[1] : '';
+        const dirName     = dirM ? dirM[1].trim() : '';
+        const dossierPrompt = `The Oracle has recommended "${cleanTitle}"${cleanYear ? ` (${cleanYear})` : ''}${dirName ? ` directed by ${dirName}` : ''}.
+
+Write a viewing guide in exactly 2-3 sentences. Cover: the film's cultural or historical significance, one specific cinematic technique or visual moment worth noticing, and the emotional experience of watching it. Authoritative and warm. No plot spoilers.`;
+
+        const dRes  = await fetch("https://oracle-proxy.adamrowe312.workers.dev", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 180, messages: [{ role: 'user', content: dossierPrompt }] })
+        });
+        const dData = await dRes.json();
+        const dText = (dData.content && dData.content.map(i => i.text || '').join('').trim()) || '';
+        if (dText) {
+          document.getElementById('result-dossier').textContent = dText;
+          document.getElementById('dossier-section').style.display = 'block';
+        }
+      } catch(_) { /* dossier failed silently */ }
 
     } catch(e) {
       loading.style.display = 'none';

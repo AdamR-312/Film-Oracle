@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Six Degrees of Cinema — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+.header-ornament { opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.header-sub { opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+main { max-width:800px; margin:0 auto; padding:64px 48px 140px; position:relative; z-index:2; }
+/* ── Input stage ─────────────────────────────────────────────────── */
+.input-stage { opacity:0; animation:fadeUp 0.7s ease forwards 1s; }
+.film-inputs { display:grid; grid-template-columns:1fr 48px 1fr; align-items:end; gap:0; margin-bottom:40px; }
+.film-input-group { display:flex; flex-direction:column; gap:8px; }
+.film-input-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; text-shadow:0 0 10px rgba(201,168,76,0.4); }
+.film-input { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:20px; color:var(--cream); background:rgba(26,8,16,0.35); border:none; border-bottom:1px solid rgba(201,168,76,0.3); padding:12px 8px; outline:none; width:100%; transition:border-color 0.3s; backdrop-filter:blur(8px); }
+.film-input:focus { border-bottom-color:var(--gold); }
+.film-input::placeholder { color:var(--cream-muted); font-style:normal; font-size:14px; font-family:'Cinzel',serif; letter-spacing:1px; }
+.input-connector { display:flex; align-items:flex-end; justify-content:center; padding-bottom:14px; font-family:'EB Garamond',serif; font-size:24px; color:var(--gold-dim); }
+.submit-wrap { text-align:center; margin-bottom:48px; }
+.submit-btn { font-family:'Playfair Display',serif; font-style:italic; font-size:20px; color:var(--cream); background:none; border:1px solid var(--gold-dim); padding:16px 52px; cursor:pointer; transition:all 0.35s; position:relative; }
+.submit-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,168,76,0.06),rgba(107,15,26,0.1)); opacity:0; transition:opacity 0.35s; }
+.submit-btn:hover:not(:disabled) { border-color:var(--gold); box-shadow:0 0 28px rgba(201,168,76,0.14); }
+.submit-btn:hover:not(:disabled)::before { opacity:1; }
+.submit-btn:disabled { opacity:0.4; cursor:not-allowed; }
+/* ── Loading ──────────────────────────────────────────────────────── */
+.loading-state { text-align:center; padding:60px 20px; font-family:'Cinzel',serif; font-size:9px; letter-spacing:5px; color:var(--gold-dim); text-transform:uppercase; animation:pulse 1.5s ease-in-out infinite; display:none; }
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+/* ── Chain ───────────────────────────────────────────────────────── */
+#chainStage { display:none; }
+.chain { display:flex; flex-direction:column; align-items:stretch; gap:0; }
+.chain-node { display:flex; gap:24px; align-items:center; background:rgba(26,8,16,0.28); backdrop-filter:blur(14px) saturate(1.1); -webkit-backdrop-filter:blur(14px) saturate(1.1); border:1px solid rgba(201,168,76,0.16); padding:24px 28px; opacity:0; animation:fadeUp 0.5s ease forwards; box-shadow:inset 0 1px 0 rgba(255,255,255,0.04); transition:border-color 0.3s,box-shadow 0.3s; }
+.chain-node:hover { border-color:rgba(201,168,76,0.35); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 0 24px rgba(201,168,76,0.12); }
+.chain-node.endpoint { border-color:rgba(201,168,76,0.28); background:rgba(42,16,24,0.32); }
+.cn-poster-wrap { width:68px; flex-shrink:0; }
+.cn-poster { width:68px; height:102px; object-fit:cover; display:block; filter:saturate(0.75) brightness(0.88); border:1px solid rgba(201,168,76,0.15); transition:filter 0.3s; }
+.chain-node:hover .cn-poster { filter:saturate(0.95) brightness(0.98); }
+.cn-no-poster { width:68px; height:102px; background:rgba(26,8,16,0.6); border:1px solid rgba(201,168,76,0.1); display:flex; align-items:center; justify-content:center; color:rgba(201,168,76,0.15); font-size:22px; }
+.cn-step { font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-bottom:6px; text-shadow:0 0 8px rgba(201,168,76,0.4); }
+.cn-title { font-family:'Playfair Display',serif; font-style:italic; font-size:22px; color:var(--cream); line-height:1.15; margin-bottom:5px; }
+.cn-year { font-family:'Cinzel',serif; font-size:8.5px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; }
+.chain-link { display:flex; flex-direction:column; align-items:center; padding:6px 0; opacity:0; animation:fadeUp 0.5s ease forwards; }
+.cl-line { width:1px; height:18px; background:linear-gradient(180deg,rgba(201,168,76,0.35),rgba(201,168,76,0.6)); }
+.cl-dot { width:5px; height:5px; border-radius:50%; background:var(--gold-dim); margin:2px 0; box-shadow:0 0 6px rgba(201,168,76,0.4); }
+.cl-text { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:16px; color:var(--cream-muted); text-align:center; padding:6px 48px; line-height:1.55; }
+/* ── Try again ───────────────────────────────────────────────────── */
+#tryAgainWrap { display:none; text-align:center; margin-top:48px; }
+.try-again-btn { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; border:1px solid rgba(201,168,76,0.2); padding:12px 32px; background:none; cursor:pointer; transition:all 0.3s; display:inline-flex; align-items:center; gap:12px; }
+.try-again-btn:hover { color:var(--gold); border-color:rgba(201,168,76,0.4); box-shadow:0 0 20px rgba(201,168,76,0.1); }
+.try-line { width:18px; height:1px; background:currentColor; transition:width 0.3s; }
+.try-again-btn:hover .try-line { width:28px; }
+.error-msg { text-align:center; font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--crimson-bright); text-transform:uppercase; padding:32px 0; display:none; }
+footer { border-top:1px solid rgba(201,168,76,0.08); }
+@media(max-width:640px) {
+  main { padding:48px 24px 100px; }
+  .film-inputs { grid-template-columns:1fr; gap:24px; }
+  .input-connector { display:none; }
+  .cl-text { padding:6px 16px; font-size:15px; }
+  .cn-title { font-size:18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">Six Degrees of Cinema</span>
+</nav>
+
+<header>
+  <div class="room-label">The Projection Room</div>
+  <h1>Six <em>Degrees</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">Name two films. Claude builds the chain connecting them.</p>
+</header>
+
+<main>
+
+  <div class="input-stage" id="inputStage">
+    <div class="film-inputs">
+      <div class="film-input-group">
+        <div class="film-input-label">Film One</div>
+        <input type="text" id="filmA" class="film-input" placeholder="e.g. Casablanca" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="input-connector">↔</div>
+      <div class="film-input-group">
+        <div class="film-input-label">Film Two</div>
+        <input type="text" id="filmB" class="film-input" placeholder="e.g. Blade Runner 2049" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="submit-wrap">
+      <button class="submit-btn" id="submitBtn">Build the Chain</button>
+    </div>
+  </div>
+
+  <div class="loading-state" id="loadingState">Constructing the chain</div>
+  <div class="error-msg" id="errorMsg">The chain could not be constructed — please try different films</div>
+
+  <div id="chainStage">
+    <div class="chain" id="chain"></div>
+  </div>
+
+  <div id="tryAgainWrap">
+    <button class="try-again-btn" id="tryAgainBtn">
+      <div class="try-line"></div>
+      Try Two More Films
+    </button>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;·&nbsp; No outside food or drink</div>
+</footer>
+
+<script>
+  const ORACLE = 'https://oracle-proxy.adamrowe312.workers.dev';
+  const TMDB   = 'https://tmdb-proxy.adamrowe312.workers.dev';
+  const IMG    = 'https://image.tmdb.org/t/p/w342';
+
+  const ROMAN = ['I','II','III','IV','V','VI','VII'];
+
+  function parseChain(text) {
+    const nodes = [];
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      if (line.startsWith('FILM:')) {
+        nodes.push({ title: line.slice(5).trim(), link: null });
+      } else if (line.startsWith('LINK:') && nodes.length > 0) {
+        nodes[nodes.length - 1].link = line.slice(5).trim();
+      }
+    }
+    return nodes.filter(n => n.title);
+  }
+
+  async function fetchPoster(titleRaw) {
+    const yearMatch = titleRaw.match(/\((\d{4})\)/);
+    const clean = titleRaw.replace(/\s*\(\d{4}\)/, '').trim();
+    const year  = yearMatch ? yearMatch[1] : '';
+    try {
+      const res  = await fetch(`${TMDB}/search/movie?query=${encodeURIComponent(clean)}${year ? `&year=${year}` : ''}&include_adult=false`);
+      const data = await res.json();
+      if (data.results && data.results[0]) {
+        const m = data.results[0];
+        return { poster: m.poster_path, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : year };
+      }
+    } catch(_) {}
+    return { poster: null, title: clean, year };
+  }
+
+  function buildNodeHTML(node, tmdb, index, total) {
+    const isEndpoint = index === 0 || index === total - 1;
+    const poster = tmdb.poster
+      ? `<img class="cn-poster" src="${IMG}${tmdb.poster}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=cn-no-poster>✦</div>'">`
+      : '<div class="cn-no-poster">✦</div>';
+    return `
+      <div class="chain-node${isEndpoint ? ' endpoint' : ''}" style="animation-delay:${index * 0.18}s">
+        <div class="cn-poster-wrap">${poster}</div>
+        <div>
+          <div class="cn-step">${ROMAN[index] || index + 1}</div>
+          <div class="cn-title">${esc(tmdb.title || node.title.replace(/\s*\(\d{4}\)/,''))}</div>
+          <div class="cn-year">${tmdb.year || ''}</div>
+        </div>
+      </div>`;
+  }
+
+  function buildLinkHTML(text, index) {
+    return `
+      <div class="chain-link" style="animation-delay:${index * 0.18 + 0.09}s">
+        <div class="cl-line"></div>
+        <div class="cl-dot"></div>
+        <div class="cl-text">${esc(text)}</div>
+        <div class="cl-dot"></div>
+        <div class="cl-line"></div>
+      </div>`;
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  }
+
+  async function buildChain() {
+    const filmA = document.getElementById('filmA').value.trim();
+    const filmB = document.getElementById('filmB').value.trim();
+    if (!filmA || !filmB) {
+      document.getElementById('filmA').focus();
+      return;
+    }
+
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('chainStage').style.display = 'none';
+    document.getElementById('tryAgainWrap').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('chain').innerHTML = '';
+
+    const prompt = `Two films have been named.
+Film A: "${filmA}"
+Film B: "${filmB}"
+
+Build a thematic, directorial, or actor-based chain connecting these two films in 4-6 steps (including Film A and Film B as the first and last steps). Each intermediate film must be a real film.
+
+Output EXACTLY in this format, one entry per line:
+FILM: [title and year, e.g. Casablanca (1942)]
+LINK: [specific connection to the next film — under 20 words, name the director, actor, or theme]
+FILM: [next title and year]
+LINK: [specific connection]
+...
+FILM: [Film B title and year]
+
+Rules: 4-6 films total. Each LINK must be specific. First film must be Film A, last must be Film B.`;
+
+    try {
+      const res  = await fetch(ORACLE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
+      });
+      const data = await res.json();
+      const text = data.content && data.content.map(i => i.text || '').join('') || '';
+      const nodes = parseChain(text);
+
+      if (nodes.length < 2) throw new Error('chain too short');
+
+      // Fetch all TMDB posters in parallel
+      const tmdbData = await Promise.all(nodes.map(n => fetchPoster(n.title)));
+
+      document.getElementById('loadingState').style.display = 'none';
+
+      // Render chain
+      let html = '';
+      nodes.forEach((node, i) => {
+        html += buildNodeHTML(node, tmdbData[i], i, nodes.length);
+        if (node.link && i < nodes.length - 1) {
+          html += buildLinkHTML(node.link, i);
+        }
+      });
+      document.getElementById('chain').innerHTML = html;
+      document.getElementById('chainStage').style.display = 'block';
+      document.getElementById('tryAgainWrap').style.display = 'block';
+
+    } catch(e) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorMsg').style.display = 'block';
+      document.getElementById('submitBtn').disabled = false;
+    }
+  }
+
+  function reset() {
+    document.getElementById('filmA').value = '';
+    document.getElementById('filmB').value = '';
+    document.getElementById('chain').innerHTML = '';
+    document.getElementById('chainStage').style.display = 'none';
+    document.getElementById('tryAgainWrap').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('filmA').focus();
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', buildChain);
+  document.getElementById('tryAgainBtn').addEventListener('click', reset);
+  document.getElementById('filmB').addEventListener('keydown', e => { if (e.key === 'Enter') buildChain(); });
+  document.getElementById('filmA').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('filmB').focus(); });
+</script>
+
+<script>
+(function(){
+  if(window.innerWidth<900)return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  ['rail-l','rail-r'].forEach(function(c){
+    var r=document.createElement('div');
+    r.className='theatre-rail '+c;
+    r.setAttribute('aria-hidden','true');
+    r.innerHTML='<div class="rail-track"><div class="rail-fill"></div></div>'
+               +'<div class="rail-marker"></div>'
+               +'<div class="rail-glow"></div>';
+    document.body.appendChild(r);
+  });
+  var fills=document.querySelectorAll('.rail-fill');
+  var markers=document.querySelectorAll('.rail-marker');
+  var glows=document.querySelectorAll('.rail-glow');
+  function update(){
+    var s=window.scrollY,maxS=document.documentElement.scrollHeight-window.innerHeight;
+    var p=maxS>0?Math.min(1,Math.max(0,s/maxS)):0;
+    fills.forEach(function(f){f.style.height=(p*100)+'%';});
+    markers.forEach(function(m){m.style.top=(80+p*(window.innerHeight-160))+'px';});
+    if(glows[0])glows[0].style.top=(8+p*54)+'%';
+    if(glows[1])glows[1].style.top=(22+p*52)+'%';
+  }
+  window.addEventListener('scroll',update,{passive:true});
+  window.addEventListener('resize',update,{passive:true});
+  update();
+})();
+</script>
+
+</body>
+</html>

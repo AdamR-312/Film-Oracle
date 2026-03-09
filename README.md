@@ -1,6 +1,6 @@
 # Adam's Cinema
 
-A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Eight standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
+A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Nine standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
 
 **Live site:** [adamr-312.github.io/Film-Oracle](https://adamr-312.github.io/Film-Oracle)
 
@@ -17,6 +17,8 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 | `collection.html` | Screening Room No. 3 | Personal film archive built from Letterboxd CSV export |
 | `indie.html` | Screening Room No. 4 | Resources, forums, and state of independent exhibition |
 | `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
+| `concession.html` | The Concession Stand | Fill-in-the-blank famous quotes — Claude responds in character as the original speaker |
+| `sixdegrees.html` | The Projection Room | Six Degrees of Cinema — Claude builds the thematic chain between any two films |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
 ---
@@ -80,6 +82,8 @@ The result card is then enriched with a `w342` poster, a backdrop image, a `▶ 
 
 Simultaneously, the director's name is sent to the **Wikipedia REST API** (`/api/rest_v1/page/summary/{name}`) — called directly from the browser with no proxy — to fetch a biography extract and portrait thumbnail, displayed beneath the director credit.
 
+After the TMDB enrichment completes, a **second Claude call** fires (`max_tokens: 180`) — a viewing dossier. The prompt passes the film title, year, and director, asking for a 2-3 sentence guide covering: the film's cultural significance, one specific cinematic technique or moment worth noticing, and the emotional register of watching it. The dossier appears in the result card under **On This Film**.
+
 If the user has already seen the recommendation, an "Already Seen It" button appends the title to a `seenFilms` array that travels with subsequent requests, instructing Claude not to repeat it.
 
 ---
@@ -119,6 +123,20 @@ Each list fetches four pages of results simultaneously (~80 candidates), then fi
 | `romance` | Greatest Romance Films | Genre 10749, vote_count ≥ 1000 |
 | `animated` | Greatest Animated Films | Genre 16, excluding family, vote_count ≥ 1000 |
 | `western` | Greatest Westerns | Genre 37, vote_count ≥ 500 |
+
+---
+
+## Six Degrees of Cinema
+
+The Projection Room (`sixdegrees.html`) takes two film titles and constructs a 4–6 step thematic, directorial, or actor-based chain connecting them.
+
+The prompt instructs Claude to output the chain in a strict alternating `FILM:` / `LINK:` format, parsed by the client with regex. Once the chain is extracted, all film titles — including user-entered films and Claude's intermediate choices — are sent to the TMDB proxy simultaneously via `Promise.all`. Each search returns a poster, rendered as a glass film card. The chain animates in step by step with staggered CSS delays.
+
+---
+
+## The Concession Stand
+
+The Concession Stand (`concession.html`) displays a famous movie quote with the final word blanked. The visitor types their answer, which is sent to the oracle-proxy Worker along with the character name, film, year, and the real answer. Claude responds **in character** as the original speaker in 2-3 sentences, commenting on the visitor's attempt without revealing the correct answer. The real answer then blazes in with a gold animation. 30 quotes cycle in randomised order.
 
 ---
 
@@ -215,6 +233,8 @@ Film-Oracle/
 ├── collection.html     # Curated collection
 ├── indie.html          # Indie & local theatres
 ├── classic.html        # The Archive (public domain cinema)
+├── concession.html     # The Concession Stand (fill-in-the-blank quotes)
+├── sixdegrees.html     # The Projection Room (Six Degrees of Cinema)
 ├── staff.html          # Technical documentation
 ├── style.css           # Shared design system
 ├── CLAUDE.md           # Repository guide for Claude Code
