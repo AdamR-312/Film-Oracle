@@ -1,6 +1,6 @@
 # Adam's Cinema
 
-A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Seven standalone pages hosted on GitHub Pages, with live data from TMDB and AI-powered recommendations via the Anthropic API. Both API keys are secured through Cloudflare Worker proxies; no secrets appear in client-side code.
+A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Eight standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
 
 **Live site:** [adamr-312.github.io/Film-Oracle](https://adamr-312.github.io/Film-Oracle)
 
@@ -10,12 +10,13 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 
 | File | Room | Description |
 |------|------|-------------|
-| `index.html` | Grand Lobby | Homepage, room navigation, live filmstrip banner (Now in Theatres) |
+| `index.html` | Grand Lobby | Homepage with dual live filmstrips (trending + upcoming) and room navigation |
 | `adams-oracle.html` | Screening Room No. 1 | 14-question AI film recommendation tool |
 | `top25.html` | Screening Room No. 2 | Navigation hub for 14 genre list pages |
 | `list.html` | Screening Room No. 2 | Universal list page — URL-param driven, renders any genre list via TMDB |
 | `collection.html` | Screening Room No. 3 | Personal film archive built from Letterboxd CSV export |
 | `indie.html` | Screening Room No. 4 | Resources, forums, and state of independent exhibition |
+| `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
 ---
@@ -24,17 +25,23 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 
 The site is fully static. Every page is a self-contained HTML file that runs directly in a browser — no server, no database, no build step. GitHub Pages serves the files as-is from the main branch.
 
-The two exceptions to full staticity:
+Different APIs are handled differently based on whether they require credentials:
 
-**Top 25 Lists + Filmstrip** — fetch live data from [The Movie Database (TMDB)](https://www.themoviedb.org/). All requests route through a Cloudflare Worker proxy (`tmdb-proxy.adamrowe312.workers.dev`) that appends the API key from a Worker secret before forwarding to TMDB.
+**Proxied (keys must stay server-side):**
+- **TMDB** — Top 25 lists, dual filmstrips, Oracle result enrichment. All requests route through `tmdb-proxy.adamrowe312.workers.dev`.
+- **Anthropic** — Oracle recommendations. Requests route through `oracle-proxy.adamrowe312.workers.dev`.
 
-**Movie Oracle** — submits a structured prompt to Anthropic's `/v1/messages` endpoint. Requests route through a second Cloudflare Worker (`oracle-proxy.adamrowe312.workers.dev`) that holds the Anthropic API key as a Worker secret. The browser POSTs to the Worker; the Worker calls Anthropic.
+**Called directly from the browser (no credentials):**
+- **Wikipedia REST API** — Director biography panel on Oracle results. Open, CORS-enabled, no key required.
+- **Internet Archive** — Public domain film search and embed on The Archive page. Fully open, no key required.
 
 ```
 Browser
-  ├── Static pages → GitHub Pages (no auth)
-  ├── TMDB requests → tmdb-proxy.workers.dev → api.themoviedb.org
-  └── Oracle requests → oracle-proxy.workers.dev → api.anthropic.com
+  ├── Static pages        → GitHub Pages (no auth)
+  ├── TMDB requests       → tmdb-proxy.workers.dev → api.themoviedb.org
+  ├── Oracle requests     → oracle-proxy.workers.dev → api.anthropic.com
+  ├── Wikipedia requests  → en.wikipedia.org (direct, open API)
+  └── Archive requests    → archive.org (direct, open API)
 ```
 
 ---
@@ -44,7 +51,9 @@ Browser
 - **HTML5 / CSS3** — single-file pages, embedded styles, CSS custom properties for the design system
 - **Vanilla JavaScript** — fetch API, sessionStorage, DOM manipulation; no libraries
 - **Anthropic API** — `claude-sonnet-4-20250514` via Worker proxy
-- **TMDB API** — `discover/movie` and `movie/now_playing` endpoints via Worker proxy
+- **TMDB API** — `discover/movie`, `trending/movie/week`, `movie/upcoming`, `search/movie`, `movie/{id}?append_to_response=videos`, `movie/{id}/recommendations` — all via Worker proxy
+- **Wikipedia REST API** — `page/summary/{name}` — called directly from the browser, no proxy
+- **Internet Archive API** — `advancedsearch.php`, `services/img/{id}`, `embed/{id}` — called directly from the browser, no proxy
 - **Cloudflare Workers** — two Workers handling API key proxying and CORS
 - **GitHub Pages** — free static hosting, deploys on push to main
 - **Google Fonts** — Playfair Display, EB Garamond, Cinzel
@@ -61,9 +70,28 @@ The Oracle collects 14 answers across four groups:
 3. **Preferences** — genre, themes, subtitles, pace, protagonist type, obscurity, era window.
 4. **Open intent** — what to avoid, what they want the film to do to them.
 
-JavaScript assembles the answers into a structured prompt and POSTs to the Cloudflare Worker. Claude responds in a fixed format (`TITLE`, `DIRECTED BY`, `WHY`, `FIND IT`), which is parsed with regex and injected into the result card. The submit button stays locked until all 14 questions are answered.
+JavaScript assembles the answers into a structured prompt and POSTs to the Cloudflare Worker. Claude responds in a fixed format (`TITLE`, `DIRECTED BY`, `WHY`, `FIND IT`), which is parsed with regex and injected into the result card.
+
+After the Oracle responds, two parallel TMDB requests fire via `append_to_response`:
+- `movie/{id}?append_to_response=videos` — fetches the film's details and trailer in one call
+- `movie/{id}/recommendations` — fetches similar films for the "Also Consider" grid
+
+The result card is then enriched with a `w342` poster, a backdrop image, a `▶ Trailer` button (YouTube link, if an official trailer exists), and a three-card similar films grid.
+
+Simultaneously, the director's name is sent to the **Wikipedia REST API** (`/api/rest_v1/page/summary/{name}`) — called directly from the browser with no proxy — to fetch a biography extract and portrait thumbnail, displayed beneath the director credit.
 
 If the user has already seen the recommendation, an "Already Seen It" button appends the title to a `seenFilms` array that travels with subsequent requests, instructing Claude not to repeat it.
+
+---
+
+## How the Filmstrips Work
+
+The Grand Lobby header carries two independent animated filmstrips:
+
+- **Top strip** — fetches `trending/movie/week` from TMDB, scrolls left
+- **Bottom strip** — fetches `movie/upcoming` from TMDB, scrolls right
+
+Both strips pause when the cursor enters them. Hovering an individual film unit triggers a JS-positioned popup card showing the poster image, title, year, star rating, and synopsis. The popup opens downward for the top strip and upward for the bottom strip, clamped to the viewport.
 
 ---
 
@@ -71,7 +99,7 @@ If the user has already seen the recommendation, an "Already Seen It" button app
 
 All 14 genre lists are served by a single page (`list.html`) via a `?list=` URL parameter. On load, the page reads the parameter, looks up the matching TMDB query config, and fires the request through the Worker.
 
-Each list fetches four pages of results simultaneously (~80 candidates), then filters out any film IDs already seen this session using `sessionStorage`. This prevents the same film from appearing on multiple lists during a browsing session. The top 25 unique results are rendered. If fewer than 25 unique results are available after filtering, it falls back to the unfiltered set.
+Each list fetches four pages of results simultaneously (~80 candidates), then filters out any film IDs already seen this session using `sessionStorage`. The top 25 unique results are rendered. If fewer than 25 unique results are available after filtering, it falls back to the unfiltered set.
 
 **Genre configs:**
 
@@ -91,6 +119,27 @@ Each list fetches four pages of results simultaneously (~80 candidates), then fi
 | `romance` | Greatest Romance Films | Genre 10749, vote_count ≥ 1000 |
 | `animated` | Greatest Animated Films | Genre 16, excluding family, vote_count ≥ 1000 |
 | `western` | Greatest Westerns | Genre 37, vote_count ≥ 500 |
+
+---
+
+## The Archive
+
+The Archive page (`classic.html`) fetches public domain films directly from the Internet Archive API — no key, no proxy.
+
+Eight programme cards each map to a distinct Lucene `AND` query against `archive.org/advancedsearch.php`:
+
+| Programme | Query |
+|-----------|-------|
+| Complete Archive | `collection:(feature_films) AND mediatype:movies` |
+| Silent Era | `collection:(silent_films) AND mediatype:movies` |
+| Westerns | `collection:(feature_films) AND mediatype:movies AND subject:westerns` |
+| Film Noir | `mediatype:movies AND subject:(film noir)` |
+| Horror | `collection:(feature_films) AND mediatype:movies AND subject:horror` |
+| Science Fiction | `mediatype:movies AND subject:(science fiction) AND year:[1940 TO 1969]` |
+| Comedy | `collection:(feature_films) AND mediatype:movies AND subject:comedy` |
+| Serials | `mediatype:movies AND subject:serials` |
+
+Film thumbnails come from `archive.org/services/img/{id}`. Selecting a film opens it in a lightbox using `archive.org/embed/{id}`.
 
 ---
 
@@ -124,7 +173,7 @@ The Workers validate the request origin against an allowlist before forwarding. 
 
 The site deploys automatically. Push to `main` → GitHub Pages serves it.
 
-To deploy locally for development, any static file server works:
+To run locally, any static file server works:
 
 ```bash
 # Python
@@ -140,7 +189,7 @@ The Cloudflare Workers include `localhost:5500` and `127.0.0.1:5500` in their CO
 
 ## Design System
 
-All pages share the same CSS custom properties:
+All pages share the same CSS custom properties defined in `style.css`:
 
 ```css
 --black: #080608;
@@ -165,7 +214,10 @@ Film-Oracle/
 ├── list.html           # Universal list page
 ├── collection.html     # Curated collection
 ├── indie.html          # Indie & local theatres
+├── classic.html        # The Archive (public domain cinema)
 ├── staff.html          # Technical documentation
+├── style.css           # Shared design system
+├── CLAUDE.md           # Repository guide for Claude Code
 └── README.md
 ```
 
