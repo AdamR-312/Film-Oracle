@@ -8,22 +8,41 @@ The user should provide the feature name and description from /architect's outpu
 ## Your pipeline
 
 ### Phase 1 — Plan
-Use TodoWrite to create a checklist of every implementation step before writing any code. A typical feature checklist:
-- [ ] Read all relevant existing files (index.html, style.css, any related pages)
-- [ ] Create new HTML file (if needed)
-- [ ] Add lobby card to index.html (if a new page)
-- [ ] Implement feature logic in JS
+
+First, read MEMORY.md at `C:\Users\Adam\.claude\projects\c--Users-Adam-Desktop-Coding-Project-Movie-Oracle-HTMLs\memory\MEMORY.md` to confirm:
+- Current lobby grid child order and the next available child position
+- Current animation-delay sequence so you can calculate the correct delay for the new room card
+- Any API patterns or conventions relevant to the feature
+
+Then read all files you'll need to modify (at minimum: index.html, style.css, and any existing page being extended).
+
+Then use TodoWrite to create a checklist tailored to this specific feature. Use one of these two templates:
+
+**If building a new page:**
+- [ ] Read MEMORY.md and all files to be modified
+- [ ] Create new HTML file with correct structure (see Phase 2)
+- [ ] Add lobby card to index.html at correct child position with correct animation-delay
+- [ ] Implement feature logic in JS with try/catch error handling on all API calls
 - [ ] Style with page-specific `<style>` block using CSS variables
-- [ ] Verify API calls go through proxy Workers (never direct)
-- [ ] Verify internal nav links point to correct files
-- [ ] Check footer and nav pattern matches other pages
+- [ ] Verify all API calls go through proxy Workers
+- [ ] Verify all internal nav links point to correct existing files
+- [ ] Confirm footer and nav pattern matches other pages
+
+**If adding to an existing page:**
+- [ ] Read MEMORY.md and all files to be modified
+- [ ] Identify exact insertion point in the existing HTML file
+- [ ] Implement feature logic in JS with try/catch error handling on all API calls
+- [ ] Style additions using existing CSS variables — no hardcoded colors
+- [ ] Verify all API calls go through proxy Workers
+- [ ] Verify no existing functionality was broken
 
 Mark each item complete as you go.
 
 ### Phase 2 — Implement
-Follow these rules strictly:
 
 **HTML structure — every new page must have:**
+- `<meta charset="UTF-8">` and `<meta name="viewport" content="width=device-width, initial-scale=1.0">` in `<head>`
+- `<title>` matching the page's cinematic name (e.g. "The Concession Stand — Adam's Cinema")
 - `<link rel="stylesheet" href="style.css">` in `<head>`
 - Page-specific `<style>` block using CSS variables (--gold, --velvet, --cream, etc.)
 - `.ceiling-bar` and `.floor-stripe` divs
@@ -37,15 +56,26 @@ Follow these rules strictly:
 - Wikipedia → direct browser call (open CORS, no key)
 - Internet Archive → direct browser call (no credentials)
 - Never put API keys in any HTML/JS file
+- Always include explicit `max_tokens` on every Anthropic API call
+- Always wrap API calls in try/catch with a user-visible error message (e.g. update a status element, not just console.error)
 
 **index.html lobby card — when adding a new room:**
 - Follow the existing `.room` card pattern
-- Set correct `animation-delay` in sequence with existing rooms
+- Set animation-delay to the next value in sequence (read index.html to find the last delay used)
 - Include `.room-title`, `.room-desc`, and relevant `.tag` spans
-- Update the feature room nth-child delay if needed
+- Update feature room nth-child delay overrides if needed
 
 ### Phase 3 — Handoff
+
 When all todos are checked off, output:
+
 > "Build complete. Run /reviewer to check the code before docs and push."
 
-List every file created or modified.
+Then list every file created or modified in this exact format so /reviewer can use it directly:
+
+```
+Modified files:
+- index.html
+- [new-page].html
+- [any other files]
+```
