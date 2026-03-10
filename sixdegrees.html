@@ -154,6 +154,10 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   const BFS_TIMEOUT_MS = 12000;
   const MAX_HOPS = 3; // film-to-film hops
 
+  // ── Credits caches (Promise-keyed to prevent duplicate in-flight fetches) ──
+  const _creditsCache = new Map();
+  const _personCreditsCache = new Map();
+
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
   }
@@ -163,6 +167,16 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   }
 
   // ── TMDB helpers ────────────────────────────────────────────────────
+
+  async function fetchWithRetry(url, signal) {
+    let res = await fetch(url, { signal });
+    if (res.status === 429) {
+      await new Promise(r => setTimeout(r, 1200));
+      res = await fetch(url, { signal });
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
 
   async function resolveFilm(titleRaw) {
     const yearMatch = titleRaw.match(/\((\d{4})\)/);
@@ -180,40 +194,46 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     };
   }
 
-  async function fetchCredits(filmId) {
-    const res  = await fetch(`${TMDB}/movie/${filmId}/credits`);
-    const data = await res.json();
-    const cast = (data.cast || []).filter(p => p.order <= 15).map(p => ({
-      id: p.id, name: p.name, job: p.character || 'Actor', role: 'cast'
-    }));
-    const crew = (data.crew || []).filter(p => PREFERRED_JOBS.includes(p.job)).map(p => ({
-      id: p.id, name: p.name, job: p.job, role: 'crew'
-    }));
-    // deduplicate by person id, crew takes priority
-    const seen = new Set();
-    const people = [];
-    for (const p of [...crew, ...cast]) {
-      if (!seen.has(p.id)) { seen.add(p.id); people.push(p); }
+  async function fetchCredits(filmId, signal) {
+    if (!_creditsCache.has(filmId)) {
+      _creditsCache.set(filmId, fetchWithRetry(`${TMDB}/movie/${filmId}/credits`, signal).then(data => {
+        const cast = (data.cast || []).filter(p => p.order <= 15).map(p => ({
+          id: p.id, name: p.name, job: 'Actor', role: 'cast'
+        }));
+        const crew = (data.crew || []).filter(p => PREFERRED_JOBS.includes(p.job)).map(p => ({
+          id: p.id, name: p.name, job: p.job, role: 'crew'
+        }));
+        // deduplicate by person id, crew takes priority
+        const seen = new Set();
+        const people = [];
+        for (const p of [...crew, ...cast]) {
+          if (!seen.has(p.id)) { seen.add(p.id); people.push(p); }
+        }
+        return people;
+      }).catch(() => []));
     }
-    return people;
+    return _creditsCache.get(filmId);
   }
 
-  async function fetchPersonCredits(personId) {
-    const res  = await fetch(`${TMDB}/person/${personId}/movie_credits`);
-    const data = await res.json();
-    const cast = (data.cast || [])
-      .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100)
-      .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
-    const crew = (data.crew || [])
-      .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100 && PREFERRED_JOBS.includes(m.job))
-      .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
-    // deduplicate films by id
-    const seen = new Set();
-    const films = [];
-    for (const f of [...cast, ...crew]) {
-      if (!seen.has(f.id)) { seen.add(f.id); films.push(f); }
+  async function fetchPersonCredits(personId, signal) {
+    if (!_personCreditsCache.has(personId)) {
+      _personCreditsCache.set(personId, fetchWithRetry(`${TMDB}/person/${personId}/movie_credits`, signal).then(data => {
+        const cast = (data.cast || [])
+          .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100)
+          .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
+        const crew = (data.crew || [])
+          .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100 && PREFERRED_JOBS.includes(m.job))
+          .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
+        // deduplicate films by id
+        const seen = new Set();
+        const films = [];
+        for (const f of [...cast, ...crew]) {
+          if (!seen.has(f.id)) { seen.add(f.id); films.push(f); }
+        }
+        return films;
+      }).catch(() => []));
     }
-    return films;
+    return _personCreditsCache.get(personId);
   }
 
   // ── BFS ─────────────────────────────────────────────────────────────
@@ -235,52 +255,56 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       if (signal.aborted) throw new Error('timeout');
       if (currentFilms.length === 0) break;
 
-      // film → persons
-      const personLayerMap = new Map(); // personId → person meta (first occurrence wins)
-      await Promise.all(currentFilms.map(async filmId => {
-        if (signal.aborted) return;
+      // ── COLLECT phase: film → persons ─────────────────────────────────
+      // Fetch all credits concurrently; never write shared state inside callbacks
+      const filmResults = await Promise.all(currentFilms.map(async filmId => {
+        if (signal.aborted) return { filmId, people: [] };
         try {
-          const people = await fetchCredits(filmId);
-          for (const p of people) {
-            if (!visitedPersons.has(p.id) && !personLayerMap.has(p.id)) {
-              personLayerMap.set(p.id, { fromFilmId: filmId, name: p.name, job: p.job, role: p.role });
-            }
-          }
-        } catch(_) {}
+          const people = await fetchCredits(filmId, signal);
+          return { filmId, people };
+        } catch(_) { return { filmId, people: [] }; }
       }));
 
       if (signal.aborted) throw new Error('timeout');
 
-      // record persons
-      for (const [pid, meta] of personLayerMap) {
-        if (!visitedPersons.has(pid)) {
-          visitedPersons.add(pid);
-          parentPerson.set(pid, meta);
+      // ── WRITE phase: film → persons (sequential, deterministic) ───────
+      const nextPersonIds = [];
+      for (const { filmId, people } of filmResults) {
+        for (const p of people) {
+          if (!visitedPersons.has(p.id)) {
+            visitedPersons.add(p.id);
+            parentPerson.set(p.id, { fromFilmId: filmId, name: p.name, job: p.job, role: p.role });
+            nextPersonIds.push(p.id);
+          }
         }
       }
 
-      // persons → films
-      const nextFilms = [];
-      await Promise.all([...personLayerMap.keys()].map(async personId => {
-        if (signal.aborted) return;
+      // ── COLLECT phase: persons → films ────────────────────────────────
+      const personResults = await Promise.all(nextPersonIds.map(async personId => {
+        if (signal.aborted) return { personId, films: [] };
         try {
-          const films = await fetchPersonCredits(personId);
-          for (const f of films) {
-            if (!visitedFilms.has(f.id)) {
-              visitedFilms.add(f.id);
-              parentFilm.set(f.id, { fromPersonId: personId, title: f.title, year: f.year, poster_path: f.poster_path });
-              nextFilms.push(f.id);
-              if (f.id === filmBId) {
-                // found — reconstruct immediately
-                return;
-              }
-            }
-          }
-        } catch(_) {}
+          const films = await fetchPersonCredits(personId, signal);
+          return { personId, films };
+        } catch(_) { return { personId, films: [] }; }
       }));
 
       if (signal.aborted) throw new Error('timeout');
-      if (visitedFilms.has(filmBId)) break;
+
+      // ── WRITE phase: persons → films (sequential, deterministic) ──────
+      const nextFilms = [];
+      let found = false;
+      for (const { personId, films } of personResults) {
+        for (const f of films) {
+          if (!visitedFilms.has(f.id)) {
+            visitedFilms.add(f.id);
+            parentFilm.set(f.id, { fromPersonId: personId, title: f.title, year: f.year, poster_path: f.poster_path });
+            nextFilms.push(f.id);
+            if (f.id === filmBId) { found = true; }
+          }
+        }
+      }
+
+      if (found) break;
       currentFilms = nextFilms;
     }
 
@@ -298,7 +322,9 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       filmChain.push(fid);
       const entry = parentFilm.get(fid);
       if (entry === null) break; // reached filmA (root)
-      fid = parentPerson.get(entry.fromPersonId).fromFilmId;
+      const personMeta = parentPerson.get(entry.fromPersonId);
+      if (!personMeta) return null; // BFS succeeded but reconstruction failed — treat as no path
+      fid = personMeta.fromFilmId;
     }
     filmChain.reverse(); // now A…B
 
@@ -443,6 +469,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       if (!result) throw new Error('no-path');
 
       const path = reconstructPath(filmAMeta.id, filmBMeta.id, filmAMeta, filmBMeta, result.parentFilm, result.parentPerson);
+      if (!path) throw new Error('no-path');
 
       // 3. Claude narration
       setStatus('Composing the narrative...');
@@ -496,6 +523,8 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   }
 
   function reset() {
+    _creditsCache.clear();
+    _personCreditsCache.clear();
     document.getElementById('filmA').value = '';
     document.getElementById('filmB').value = '';
     document.getElementById('chain').innerHTML = '';
