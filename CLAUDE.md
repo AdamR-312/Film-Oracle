@@ -4,20 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Pipeline
 
-All improvements to Adam's Cinema follow this five-stage pipeline using custom skills. **Do not skip stages.**
+All improvements to Adam's Cinema follow this seven-stage pipeline using custom skills. **Do not skip stages.**
 
 ```
-/architect → approve idea → /builder → /reviewer → /archivist → /ruca
+/scout → /architect → approve idea → /builder → /reviewer → /archivist → /ruca
 ```
 
 | Stage | Skill | Purpose |
 |---|---|---|
-| 1 | `/architect` | Reads the full codebase, proposes 5–8 ranked feature ideas |
-| 2 | *(approval)* | User selects an idea before any code is written |
-| 3 | `/builder` | Implements the feature with a TodoWrite checklist, following all conventions |
-| 4 | `/reviewer` | Audits new/modified code for security, structure, and design — outputs PASS/FAIL |
-| 5 | `/archivist` | Updates staff.html, README.md, and MEMORY.md to reflect the new feature |
-| 6 | `/ruca` | Verifies all edits, then pushes to GitHub only if all checks pass |
+| 1 | `/scout` | Researches the topic via authoritative sources; produces a Research Brief for /architect |
+| 2 | `/architect` | Reads the full codebase + Scout's brief, proposes 5–8 ranked feature ideas |
+| 3 | *(approval)* | User selects an idea before any code is written |
+| 4 | `/builder` | Implements the feature with a TodoWrite checklist, following all conventions |
+| 5 | `/reviewer` | Audits new/modified code for security, structure, and design — outputs PASS/FAIL |
+| 6 | `/archivist` | Updates staff.html, README.md, CLAUDE.md, and MEMORY.md to reflect the new feature |
+| 7 | `/ruca` | Confirms branch, verifies edits, pushes to GitHub only if all checks pass |
 
 Skills are defined in [.claude/skills/](.claude/skills/). `/reviewer` must PASS before `/archivist` runs. `/ruca` must PASS before any push occurs.
 
