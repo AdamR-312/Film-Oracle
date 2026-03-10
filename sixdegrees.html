@@ -151,12 +151,9 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 
   const ROMAN = ['I','II','III','IV','V','VI','VII'];
   const PREFERRED_JOBS = ['Director','Screenplay','Director of Photography','Producer'];
-  const BFS_TIMEOUT_MS = 12000;
-  const MAX_HOPS = 3; // film-to-film hops
 
-  // ── Credits caches (Promise-keyed to prevent duplicate in-flight fetches) ──
+  // ── Credits cache (Promise-keyed to prevent duplicate in-flight fetches) ──
   const _creditsCache = new Map();
-  const _personCreditsCache = new Map();
 
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -215,160 +212,34 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     return _creditsCache.get(filmId);
   }
 
-  async function fetchPersonCredits(personId, signal) {
-    if (!_personCreditsCache.has(personId)) {
-      _personCreditsCache.set(personId, fetchWithRetry(`${TMDB}/person/${personId}/movie_credits`, signal).then(data => {
-        const cast = (data.cast || [])
-          .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100)
-          .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
-        const crew = (data.crew || [])
-          .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100 && PREFERRED_JOBS.includes(m.job))
-          .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
-        // deduplicate films by id
-        const seen = new Set();
-        const films = [];
-        for (const f of [...cast, ...crew]) {
-          if (!seen.has(f.id)) { seen.add(f.id); films.push(f); }
-        }
-        return films;
-      }).catch(() => []));
-    }
-    return _personCreditsCache.get(personId);
-  }
+  // ── Claude: suggest path + narration ────────────────────────────────
 
-  // ── BFS ─────────────────────────────────────────────────────────────
+  async function suggestAndNarrate(filmA, filmB, failureHint = null) {
+    const retryNote = failureHint
+      ? `\nIMPORTANT: A previous suggestion failed TMDB verification: ${failureHint}. Please suggest a different real person.`
+      : '';
 
-  async function bfsSearch(filmAId, filmBId, signal) {
-    // parentFilm[filmId] = { fromPersonId }
-    // parentPerson[personId] = { fromFilmId, name, job, role }
-    const parentFilm   = new Map();
-    const parentPerson = new Map();
-    const visitedFilms   = new Set([filmAId]);
-    const visitedPersons = new Set();
+    const prompt = `You are connecting two films via real shared cast or crew verified by TMDB.
 
-    parentFilm.set(filmAId, null); // root
+Film A: "${filmA.title}" (${filmA.year})
+Film B: "${filmB.title}" (${filmB.year})
+${retryNote}
 
-    // BFS queue holds film IDs; each level = one film-to-film hop
-    let currentFilms = [filmAId];
+Find the shortest real connection (prefer direct 1-hop via shared person; use 2-hop with one intermediate film only if necessary).
 
-    for (let hop = 0; hop < MAX_HOPS; hop++) {
-      if (signal.aborted) throw new Error('timeout');
-      if (currentFilms.length === 0) break;
+Respond in EXACTLY this format — no other text:
 
-      // ── COLLECT phase: film → persons ─────────────────────────────────
-      // Fetch all credits concurrently; never write shared state inside callbacks
-      const filmResults = await Promise.all(currentFilms.map(async filmId => {
-        if (signal.aborted) return { filmId, people: [] };
-        try {
-          const people = await fetchCredits(filmId, signal);
-          return { filmId, people };
-        } catch(_) { return { filmId, people: [] }; }
-      }));
+PATH:
+PERSON: [exact full name as credited in TMDB]
+ROLE_A: [their role in Film A: Actor|Director|Screenplay|Producer|Director of Photography]
+ROLE_B: [their role in Film B: same options — only include if direct 1-hop connection]
+INTERM: [intermediate film title — only include if 2-hop connection is needed]
+PERSON2: [second person's name — only include if 2-hop]
+ROLE_B2: [second person's role in Film B — only include if 2-hop]
 
-      if (signal.aborted) throw new Error('timeout');
-
-      // ── WRITE phase: film → persons (sequential, deterministic) ───────
-      const nextPersonIds = [];
-      for (const { filmId, people } of filmResults) {
-        for (const p of people) {
-          if (!visitedPersons.has(p.id)) {
-            visitedPersons.add(p.id);
-            parentPerson.set(p.id, { fromFilmId: filmId, name: p.name, job: p.job, role: p.role });
-            nextPersonIds.push(p.id);
-          }
-        }
-      }
-
-      // ── COLLECT phase: persons → films ────────────────────────────────
-      const personResults = await Promise.all(nextPersonIds.map(async personId => {
-        if (signal.aborted) return { personId, films: [] };
-        try {
-          const films = await fetchPersonCredits(personId, signal);
-          return { personId, films };
-        } catch(_) { return { personId, films: [] }; }
-      }));
-
-      if (signal.aborted) throw new Error('timeout');
-
-      // ── WRITE phase: persons → films (sequential, deterministic) ──────
-      const nextFilms = [];
-      let found = false;
-      for (const { personId, films } of personResults) {
-        for (const f of films) {
-          if (!visitedFilms.has(f.id)) {
-            visitedFilms.add(f.id);
-            parentFilm.set(f.id, { fromPersonId: personId, title: f.title, year: f.year, poster_path: f.poster_path });
-            nextFilms.push(f.id);
-            if (f.id === filmBId) { found = true; }
-          }
-        }
-      }
-
-      if (found) break;
-      currentFilms = nextFilms;
-    }
-
-    if (!visitedFilms.has(filmBId)) return null;
-    return { parentFilm, parentPerson };
-  }
-
-  // ── Path reconstruction ──────────────────────────────────────────────
-
-  function reconstructPath(filmAId, filmBId, filmAMeta, filmBMeta, parentFilm, parentPerson) {
-    // Walk back from filmB to filmA
-    const filmChain  = []; // film IDs in order from B to A
-    let fid = filmBId;
-    while (fid !== null) {
-      filmChain.push(fid);
-      const entry = parentFilm.get(fid);
-      if (entry === null) break; // reached filmA (root)
-      const personMeta = parentPerson.get(entry.fromPersonId);
-      if (!personMeta) return null; // BFS succeeded but reconstruction failed — treat as no path
-      fid = personMeta.fromFilmId;
-    }
-    filmChain.reverse(); // now A…B
-
-    // Build alternating array
-    const path = [];
-    // filmMeta cache
-    const filmMetas = new Map();
-    filmMetas.set(filmAId, filmAMeta);
-    filmMetas.set(filmBId, filmBMeta);
-
-    for (let i = 0; i < filmChain.length; i++) {
-      const fId = filmChain[i];
-      let meta = filmMetas.get(fId);
-      if (!meta) {
-        // Pull from parentFilm entry
-        const entry = parentFilm.get(fId);
-        meta = { id: fId, title: entry.title, year: entry.year, poster_path: entry.poster_path };
-      }
-      path.push({ type: 'film', id: fId, title: meta.title, year: meta.year, poster_path: meta.poster_path });
-
-      if (i < filmChain.length - 1) {
-        const nextFId = filmChain[i + 1];
-        const nextEntry = parentFilm.get(nextFId);
-        const personId  = nextEntry.fromPersonId;
-        const personMeta = parentPerson.get(personId);
-        const roleLabel = personMeta.role === 'crew' ? personMeta.job : 'Actor';
-        path.push({ type: 'person', id: personId, name: personMeta.name, job: roleLabel, role: personMeta.role });
-      }
-    }
-    return path;
-  }
-
-  // ── Narration ────────────────────────────────────────────────────────
-
-  async function fetchNarration(path) {
-    const parts = path.map(node => {
-      if (node.type === 'film')   return `${node.title} (${node.year})`;
-      if (node.type === 'person') return `${node.name} [${node.job}]`;
-      return '';
-    });
-    const serialized = parts.join(' → ');
-    const personCount = path.filter(n => n.type === 'person').length;
-
-    const prompt = `You are a cinema scholar. For each connection in this verified film chain, write exactly one sentence explaining the cinematic significance of the link. Return only the sentences, one per line, numbered (1. 2. etc.). Chain: ${serialized}. Write ${personCount} sentence${personCount !== 1 ? 's' : ''} for ${personCount} connection${personCount !== 1 ? 's' : ''}.`;
+NARRATION:
+1. [One sentence about the first person's connection — mention both films and the person's role]
+2. [One sentence about second connection — only include if 2-hop]`;
 
     const res = await fetch(ORACLE, {
       method: 'POST',
@@ -379,12 +250,153 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
         messages: [{ role: 'user', content: prompt }]
       })
     });
+    if (!res.ok) throw new Error('oracle');
     const data = await res.json();
-    const text = data.content && data.content.map(i => i.text || '').join('') || '';
-    const sentences = text.split('\n')
-      .map(l => l.trim().replace(/^\d+\.\s*/, ''))
-      .filter(Boolean);
-    return sentences;
+    return data.content[0].text;
+  }
+
+  // ── Parse Claude's structured response ──────────────────────────────
+
+  function parseSuggestion(text) {
+    const pathMatch = text.match(/PATH:([\s\S]*?)(?:NARRATION:|$)/);
+    const narrationMatch = text.match(/NARRATION:([\s\S]*)/);
+
+    if (!pathMatch) return null;
+    const pathLines = pathMatch[1].trim().split('\n').map(l => l.trim()).filter(Boolean);
+
+    const get = (prefix) => {
+      const line = pathLines.find(l => l.startsWith(prefix + ':'));
+      return line ? line.slice(prefix.length + 1).trim() : null;
+    };
+
+    const narrationLines = narrationMatch
+      ? narrationMatch[1].trim().split('\n')
+          .map(l => l.replace(/^\d+\.\s*/, '').trim())
+          .filter(Boolean)
+      : [];
+
+    const person = get('PERSON');
+    const roleA  = get('ROLE_A');
+    const roleB  = get('ROLE_B');
+    const interm  = get('INTERM');
+    const person2 = get('PERSON2');
+    const roleB2  = get('ROLE_B2');
+
+    if (!person || !roleA) return null;
+
+    if (interm && person2) {
+      // 2-hop
+      return {
+        type: '2hop',
+        person1: person, role1inA: roleA, intermFilm: interm,
+        person2, role2inB: roleB2 || roleA,
+        narration: narrationLines
+      };
+    } else {
+      // 1-hop
+      return {
+        type: '1hop',
+        person, roleInA: roleA, roleInB: roleB || roleA,
+        narration: narrationLines
+      };
+    }
+  }
+
+  // ── Verify Claude's suggestion against TMDB ──────────────────────────
+
+  async function verifyAndBuildPath(suggestion, filmDataA, filmDataB, creditsA, creditsB) {
+    if (!suggestion) return null;
+
+    // Helper: find person in credits by name (case-insensitive, partial match allowed)
+    function findInCredits(credits, name) {
+      const n = name.toLowerCase();
+      return credits.find(p => p.name.toLowerCase() === n ||
+        p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase()));
+    }
+
+    if (suggestion.type === '1hop') {
+      const matchA = findInCredits(creditsA, suggestion.person);
+      const matchB = findInCredits(creditsB, suggestion.person);
+      if (!matchA || !matchB) {
+        return { verified: false, reason: `"${suggestion.person}" not found in credits of both films` };
+      }
+      const personNode = {
+        type: 'person',
+        id: matchA.id,
+        name: matchA.name,
+        job: suggestion.roleInA,
+        role: PREFERRED_JOBS.includes(suggestion.roleInA) ? 'crew' : 'cast'
+      };
+      return {
+        verified: true,
+        path: [
+          { type: 'film', ...filmDataA },
+          personNode,
+          { type: 'film', ...filmDataB }
+        ],
+        narration: suggestion.narration
+      };
+    }
+
+    if (suggestion.type === '2hop') {
+      const matchA = findInCredits(creditsA, suggestion.person1);
+      if (!matchA) {
+        return { verified: false, reason: `"${suggestion.person1}" not found in credits of "${filmDataA.title}"` };
+      }
+
+      // Resolve intermediate film
+      let intermData;
+      try { intermData = await resolveFilm(suggestion.intermFilm); }
+      catch(_) {
+        return { verified: false, reason: `Intermediate film "${suggestion.intermFilm}" not found in TMDB` };
+      }
+      if (!intermData) {
+        return { verified: false, reason: `Intermediate film "${suggestion.intermFilm}" not found in TMDB` };
+      }
+
+      // Fetch intermediate film credits
+      let intermCredits;
+      try { intermCredits = await fetchCredits(intermData.id); }
+      catch(_) {
+        return { verified: false, reason: `Could not fetch credits for "${intermData.title}"` };
+      }
+
+      const match1inInterm = findInCredits(intermCredits, suggestion.person1);
+      const match2inInterm = findInCredits(intermCredits, suggestion.person2);
+      const match2inB      = findInCredits(creditsB, suggestion.person2);
+
+      if (!match1inInterm) {
+        return { verified: false, reason: `"${suggestion.person1}" not found in credits of "${intermData.title}"` };
+      }
+      if (!match2inInterm || !match2inB) {
+        return { verified: false, reason: `"${suggestion.person2}" not found connecting "${intermData.title}" to "${filmDataB.title}"` };
+      }
+
+      const person1Node = {
+        type: 'person', id: matchA.id, name: matchA.name,
+        job: suggestion.role1inA,
+        role: PREFERRED_JOBS.includes(suggestion.role1inA) ? 'crew' : 'cast'
+      };
+      const person2Node = {
+        type: 'person', id: match2inB.id, name: match2inB.name,
+        job: suggestion.role2inB,
+        role: PREFERRED_JOBS.includes(suggestion.role2inB) ? 'crew' : 'cast'
+      };
+
+      return {
+        verified: true,
+        path: [
+          { type: 'film', ...filmDataA },
+          person1Node,
+          { type: 'film', ...intermData },
+          person2Node,
+          { type: 'film', ...filmDataB }
+        ],
+        narration: suggestion.narration
+      };
+    }
+
+    return null;
   }
 
   // ── Render ───────────────────────────────────────────────────────────
@@ -429,6 +441,34 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       </div>`;
   }
 
+  function renderChain(path, narration) {
+    document.getElementById('loadingState').style.display = 'none';
+    const container = document.getElementById('chain');
+    container.innerHTML = '';
+
+    const filmNodes = path.filter(n => n.type === 'film');
+    const totalFilms = filmNodes.length;
+    let filmIndex = 0;
+    let animIndex = 0;
+    let narrationIdx = 0;
+
+    path.forEach((node) => {
+      if (node.type === 'film') {
+        container.insertAdjacentHTML('beforeend', buildFilmNodeHTML(node, filmIndex, totalFilms, animIndex));
+        filmIndex++;
+        animIndex++;
+      } else if (node.type === 'person') {
+        const prose = narration[narrationIdx] || '';
+        narrationIdx++;
+        container.insertAdjacentHTML('beforeend', buildPersonLinkHTML(node, prose, animIndex));
+        animIndex++;
+      }
+    });
+
+    document.getElementById('chainStage').style.display = 'block';
+    document.getElementById('tryAgainWrap').style.display = 'block';
+  }
+
   // ── Main orchestrator ────────────────────────────────────────────────
 
   async function buildChain() {
@@ -444,87 +484,96 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     document.getElementById('chainStage').style.display = 'none';
     document.getElementById('tryAgainWrap').style.display = 'none';
     document.getElementById('chain').innerHTML = '';
-    setStatus('Tracing the connection through the archives...');
     document.getElementById('loadingState').style.display = 'block';
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), BFS_TIMEOUT_MS);
-
     try {
-      // 1. Resolve both films
-      const [filmAMeta, filmBMeta] = await Promise.all([
-        resolveFilm(filmAInput),
-        resolveFilm(filmBInput)
-      ]);
-      if (!filmAMeta) throw new Error('film-a-not-found');
-      if (!filmBMeta) throw new Error('film-b-not-found');
-
-      // Handle same film
-      if (filmAMeta.id === filmBMeta.id) throw new Error('same-film');
-
-      // 2. BFS
-      const result = await bfsSearch(filmAMeta.id, filmBMeta.id, controller.signal);
-      clearTimeout(timer);
-
-      if (!result) throw new Error('no-path');
-
-      const path = reconstructPath(filmAMeta.id, filmBMeta.id, filmAMeta, filmBMeta, result.parentFilm, result.parentPerson);
-      if (!path) throw new Error('no-path');
-
-      // 3. Claude narration
-      setStatus('Composing the narrative...');
-      let narrations = [];
+      // Phase 1: Resolve both films
+      setStatus('Searching the archives...');
+      let filmDataA, filmDataB;
       try {
-        narrations = await fetchNarration(path);
-      } catch(_) { /* narration is best-effort */ }
+        [filmDataA, filmDataB] = await Promise.all([
+          resolveFilm(filmAInput),
+          resolveFilm(filmBInput)
+        ]);
+      } catch(e) {
+        throw new Error('not-found');
+      }
+      if (!filmDataA || !filmDataB) throw new Error('not-found');
 
-      document.getElementById('loadingState').style.display = 'none';
+      // Phase 2: Fetch both credits simultaneously
+      setStatus('Tracing the connection...');
+      const [creditsA, creditsB] = await Promise.all([
+        fetchCredits(filmDataA.id),
+        fetchCredits(filmDataB.id)
+      ]);
 
-      // 4. Render
-      const filmNodes = path.filter(n => n.type === 'film');
-      const totalFilms = filmNodes.length;
-      let filmIndex = 0;
-      let animIndex = 0;
-      let narrationIndex = 0;
-      let html = '';
+      // Phase 3: Direct TMDB intersection check (no Claude needed)
+      const personSetB = new Map(creditsB.map(p => [p.id, p]));
+      const directMatch = creditsA.find(p => personSetB.has(p.id));
 
-      for (const node of path) {
-        if (node.type === 'film') {
-          html += buildFilmNodeHTML(node, filmIndex, totalFilms, animIndex);
-          filmIndex++;
-          animIndex++;
-        } else {
-          html += buildPersonLinkHTML(node, narrations[narrationIndex], animIndex);
-          narrationIndex++;
-          animIndex++;
-        }
+      if (directMatch) {
+        const job  = directMatch.job || 'Actor';
+        const role = PREFERRED_JOBS.includes(job) ? 'crew' : 'cast';
+
+        setStatus('Composing the narrative...');
+        // Ask Claude only for narration prose
+        const narrationText = await suggestAndNarrate(filmDataA, filmDataB);
+        const parsed = parseSuggestion(narrationText);
+        const narration = parsed ? parsed.narration : [];
+
+        const path = [
+          { type: 'film', ...filmDataA },
+          { type: 'person', id: directMatch.id, name: directMatch.name, job, role },
+          { type: 'film', ...filmDataB }
+        ];
+        renderChain(path, narration);
+        return;
       }
 
-      document.getElementById('chain').innerHTML = html;
-      document.getElementById('chainStage').style.display = 'block';
-      document.getElementById('tryAgainWrap').style.display = 'block';
+      // Phase 4: Ask Claude to suggest a path
+      setStatus('Consulting the oracle...');
+      const suggestionText = await suggestAndNarrate(filmDataA, filmDataB);
+      const suggestion = parseSuggestion(suggestionText);
+
+      // Phase 5: Verify suggestion
+      setStatus('Verifying the connection...');
+      const result = await verifyAndBuildPath(suggestion, filmDataA, filmDataB, creditsA, creditsB);
+
+      if (result && result.verified) {
+        renderChain(result.path, result.narration);
+        return;
+      }
+
+      // Phase 6: Retry with failure feedback
+      const failureHint = (result && result.reason) ? result.reason : 'previous suggestion could not be verified';
+      setStatus('Searching deeper...');
+      const retrySuggestionText = await suggestAndNarrate(filmDataA, filmDataB, failureHint);
+      const retrySuggestion = parseSuggestion(retrySuggestionText);
+      const retryResult = await verifyAndBuildPath(retrySuggestion, filmDataA, filmDataB, creditsA, creditsB);
+
+      if (retryResult && retryResult.verified) {
+        renderChain(retryResult.path, retryResult.narration);
+        return;
+      }
+
+      throw new Error('no-path');
 
     } catch(e) {
-      clearTimeout(timer);
       document.getElementById('loadingState').style.display = 'none';
-      const errEl = document.getElementById('errorMsg');
-      if (e.message === 'film-a-not-found' || e.message === 'film-b-not-found') {
-        errEl.textContent = 'Film not recognised — check the title and try again';
-      } else if (e.message === 'timeout' || controller.signal.aborted) {
-        errEl.textContent = 'The search took too long — please try again';
-      } else if (e.message === 'no-path') {
-        errEl.textContent = 'No direct connection found within three degrees — try films from the same era or studio';
-      } else {
-        errEl.textContent = 'No direct connection found within three degrees — try films from the same era or studio';
-      }
-      errEl.style.display = 'block';
       document.getElementById('submitBtn').disabled = false;
+      const errEl = document.getElementById('errorMsg');
+      const msg = e.message === 'not-found'
+        ? 'Film not recognised — check the title and try again'
+        : e.message === 'no-path'
+        ? 'No verified connection found — try a different pair of films'
+        : 'Something went wrong — please try again';
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
     }
   }
 
   function reset() {
     _creditsCache.clear();
-    _personCreditsCache.clear();
     document.getElementById('filmA').value = '';
     document.getElementById('filmB').value = '';
     document.getElementById('chain').innerHTML = '';
