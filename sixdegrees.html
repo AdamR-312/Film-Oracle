@@ -50,6 +50,13 @@ main { max-width:800px; margin:0 auto; padding:64px 48px 140px; position:relativ
 .cl-line { width:1px; height:18px; background:linear-gradient(180deg,rgba(201,168,76,0.35),rgba(201,168,76,0.6)); }
 .cl-dot { width:5px; height:5px; border-radius:50%; background:var(--gold-dim); margin:2px 0; box-shadow:0 0 6px rgba(201,168,76,0.4); }
 .cl-text { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:16px; color:var(--cream-muted); text-align:center; padding:6px 48px; line-height:1.55; }
+/* ── Role badge ──────────────────────────────────────────────────── */
+.cl-role { font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px; opacity:0.9; }
+.cl-role.role-director   { color:var(--gold); text-shadow:0 0 10px rgba(201,168,76,0.4); }
+.cl-role.role-actor      { color:var(--cream-muted); }
+.cl-role.role-screenplay { color:rgba(201,168,76,0.6); }
+.cl-role.role-dp         { color:rgba(201,168,76,0.6); }
+.cl-role.role-producer   { color:rgba(201,168,76,0.6); }
 /* ── Try again ───────────────────────────────────────────────────── */
 #tryAgainWrap { display:none; text-align:center; margin-top:48px; }
 .try-again-btn { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; border:1px solid rgba(201,168,76,0.2); padding:12px 32px; background:none; cursor:pointer; transition:all 0.3s; display:inline-flex; align-items:center; gap:12px; }
@@ -90,7 +97,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     <div class="orn-diamond"></div>
     <div class="orn-line r"></div>
   </div>
-  <p class="header-sub">Name two films. Claude builds the chain connecting them.</p>
+  <p class="header-sub">Name two films. The archive traces the real connections between them.</p>
 </header>
 
 <main>
@@ -112,8 +119,8 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     </div>
   </div>
 
-  <div class="loading-state" id="loadingState">Constructing the chain</div>
-  <div class="error-msg" id="errorMsg">The chain could not be constructed — please try different films</div>
+  <div class="loading-state" id="loadingState">Tracing the connection through the archives...</div>
+  <div class="error-msg" id="errorMsg"></div>
 
   <div id="chainStage">
     <div class="chain" id="chain"></div>
@@ -139,129 +146,346 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   const IMG    = 'https://image.tmdb.org/t/p/w342';
 
   const ROMAN = ['I','II','III','IV','V','VI','VII'];
-
-  function parseChain(text) {
-    const nodes = [];
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    for (const line of lines) {
-      if (line.startsWith('FILM:')) {
-        nodes.push({ title: line.slice(5).trim(), link: null });
-      } else if (line.startsWith('LINK:') && nodes.length > 0) {
-        nodes[nodes.length - 1].link = line.slice(5).trim();
-      }
-    }
-    return nodes.filter(n => n.title);
-  }
-
-  async function fetchPoster(titleRaw) {
-    const yearMatch = titleRaw.match(/\((\d{4})\)/);
-    const clean = titleRaw.replace(/\s*\(\d{4}\)/, '').trim();
-    const year  = yearMatch ? yearMatch[1] : '';
-    try {
-      const res  = await fetch(`${TMDB}/search/movie?query=${encodeURIComponent(clean)}${year ? `&year=${year}` : ''}&include_adult=false`);
-      const data = await res.json();
-      if (data.results && data.results[0]) {
-        const m = data.results[0];
-        return { poster: m.poster_path, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : year };
-      }
-    } catch(_) {}
-    return { poster: null, title: clean, year };
-  }
-
-  function buildNodeHTML(node, tmdb, index, total) {
-    const isEndpoint = index === 0 || index === total - 1;
-    const poster = tmdb.poster
-      ? `<img class="cn-poster" src="${IMG}${tmdb.poster}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=cn-no-poster>✦</div>'">`
-      : '<div class="cn-no-poster">✦</div>';
-    return `
-      <div class="chain-node${isEndpoint ? ' endpoint' : ''}" style="animation-delay:${index * 0.18}s">
-        <div class="cn-poster-wrap">${poster}</div>
-        <div>
-          <div class="cn-step">${ROMAN[index] || index + 1}</div>
-          <div class="cn-title">${esc(tmdb.title || node.title.replace(/\s*\(\d{4}\)/,''))}</div>
-          <div class="cn-year">${tmdb.year || ''}</div>
-        </div>
-      </div>`;
-  }
-
-  function buildLinkHTML(text, index) {
-    return `
-      <div class="chain-link" style="animation-delay:${index * 0.18 + 0.09}s">
-        <div class="cl-line"></div>
-        <div class="cl-dot"></div>
-        <div class="cl-text">${esc(text)}</div>
-        <div class="cl-dot"></div>
-        <div class="cl-line"></div>
-      </div>`;
-  }
+  const PREFERRED_JOBS = ['Director','Screenplay','Director of Photography','Producer'];
+  const BFS_TIMEOUT_MS = 12000;
+  const MAX_HOPS = 3; // film-to-film hops
 
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
   }
 
+  function setStatus(msg) {
+    document.getElementById('loadingState').textContent = msg;
+  }
+
+  // ── TMDB helpers ────────────────────────────────────────────────────
+
+  async function resolveFilm(titleRaw) {
+    const yearMatch = titleRaw.match(/\((\d{4})\)/);
+    const clean = titleRaw.replace(/\s*\(\d{4}\)/, '').trim();
+    const year  = yearMatch ? yearMatch[1] : '';
+    const res  = await fetch(`${TMDB}/search/movie?query=${encodeURIComponent(clean)}${year ? `&primary_release_year=${year}` : ''}&include_adult=false`);
+    const data = await res.json();
+    if (!data.results || !data.results[0]) return null;
+    const m = data.results[0];
+    return {
+      id: m.id,
+      title: m.title,
+      year: m.release_date ? m.release_date.slice(0, 4) : year,
+      poster_path: m.poster_path
+    };
+  }
+
+  async function fetchCredits(filmId) {
+    const res  = await fetch(`${TMDB}/movie/${filmId}/credits`);
+    const data = await res.json();
+    const cast = (data.cast || []).filter(p => p.order <= 15).map(p => ({
+      id: p.id, name: p.name, job: p.character || 'Actor', role: 'cast'
+    }));
+    const crew = (data.crew || []).filter(p => PREFERRED_JOBS.includes(p.job)).map(p => ({
+      id: p.id, name: p.name, job: p.job, role: 'crew'
+    }));
+    // deduplicate by person id, crew takes priority
+    const seen = new Set();
+    const people = [];
+    for (const p of [...crew, ...cast]) {
+      if (!seen.has(p.id)) { seen.add(p.id); people.push(p); }
+    }
+    return people;
+  }
+
+  async function fetchPersonCredits(personId) {
+    const res  = await fetch(`${TMDB}/person/${personId}/movie_credits`);
+    const data = await res.json();
+    const cast = (data.cast || [])
+      .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100)
+      .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
+    const crew = (data.crew || [])
+      .filter(m => (m.popularity || 0) > 3 && (m.vote_count || 0) > 100 && PREFERRED_JOBS.includes(m.job))
+      .map(m => ({ id: m.id, title: m.title, year: m.release_date ? m.release_date.slice(0,4) : '', poster_path: m.poster_path }));
+    // deduplicate films by id
+    const seen = new Set();
+    const films = [];
+    for (const f of [...cast, ...crew]) {
+      if (!seen.has(f.id)) { seen.add(f.id); films.push(f); }
+    }
+    return films;
+  }
+
+  // ── BFS ─────────────────────────────────────────────────────────────
+
+  async function bfsSearch(filmAId, filmBId, signal) {
+    // parentFilm[filmId] = { fromPersonId }
+    // parentPerson[personId] = { fromFilmId, name, job, role }
+    const parentFilm   = new Map();
+    const parentPerson = new Map();
+    const visitedFilms   = new Set([filmAId]);
+    const visitedPersons = new Set();
+
+    parentFilm.set(filmAId, null); // root
+
+    // BFS queue holds film IDs; each level = one film-to-film hop
+    let currentFilms = [filmAId];
+
+    for (let hop = 0; hop < MAX_HOPS; hop++) {
+      if (signal.aborted) throw new Error('timeout');
+      if (currentFilms.length === 0) break;
+
+      // film → persons
+      const personLayerMap = new Map(); // personId → person meta (first occurrence wins)
+      await Promise.all(currentFilms.map(async filmId => {
+        if (signal.aborted) return;
+        try {
+          const people = await fetchCredits(filmId);
+          for (const p of people) {
+            if (!visitedPersons.has(p.id) && !personLayerMap.has(p.id)) {
+              personLayerMap.set(p.id, { fromFilmId: filmId, name: p.name, job: p.job, role: p.role });
+            }
+          }
+        } catch(_) {}
+      }));
+
+      if (signal.aborted) throw new Error('timeout');
+
+      // record persons
+      for (const [pid, meta] of personLayerMap) {
+        if (!visitedPersons.has(pid)) {
+          visitedPersons.add(pid);
+          parentPerson.set(pid, meta);
+        }
+      }
+
+      // persons → films
+      const nextFilms = [];
+      await Promise.all([...personLayerMap.keys()].map(async personId => {
+        if (signal.aborted) return;
+        try {
+          const films = await fetchPersonCredits(personId);
+          for (const f of films) {
+            if (!visitedFilms.has(f.id)) {
+              visitedFilms.add(f.id);
+              parentFilm.set(f.id, { fromPersonId: personId, title: f.title, year: f.year, poster_path: f.poster_path });
+              nextFilms.push(f.id);
+              if (f.id === filmBId) {
+                // found — reconstruct immediately
+                return;
+              }
+            }
+          }
+        } catch(_) {}
+      }));
+
+      if (signal.aborted) throw new Error('timeout');
+      if (visitedFilms.has(filmBId)) break;
+      currentFilms = nextFilms;
+    }
+
+    if (!visitedFilms.has(filmBId)) return null;
+    return { parentFilm, parentPerson };
+  }
+
+  // ── Path reconstruction ──────────────────────────────────────────────
+
+  function reconstructPath(filmAId, filmBId, filmAMeta, filmBMeta, parentFilm, parentPerson) {
+    // Walk back from filmB to filmA
+    const filmChain  = []; // film IDs in order from B to A
+    let fid = filmBId;
+    while (fid !== null) {
+      filmChain.push(fid);
+      const entry = parentFilm.get(fid);
+      if (entry === null) break; // reached filmA (root)
+      fid = parentPerson.get(entry.fromPersonId).fromFilmId;
+    }
+    filmChain.reverse(); // now A…B
+
+    // Build alternating array
+    const path = [];
+    // filmMeta cache
+    const filmMetas = new Map();
+    filmMetas.set(filmAId, filmAMeta);
+    filmMetas.set(filmBId, filmBMeta);
+
+    for (let i = 0; i < filmChain.length; i++) {
+      const fId = filmChain[i];
+      let meta = filmMetas.get(fId);
+      if (!meta) {
+        // Pull from parentFilm entry
+        const entry = parentFilm.get(fId);
+        meta = { id: fId, title: entry.title, year: entry.year, poster_path: entry.poster_path };
+      }
+      path.push({ type: 'film', id: fId, title: meta.title, year: meta.year, poster_path: meta.poster_path });
+
+      if (i < filmChain.length - 1) {
+        const nextFId = filmChain[i + 1];
+        const nextEntry = parentFilm.get(nextFId);
+        const personId  = nextEntry.fromPersonId;
+        const personMeta = parentPerson.get(personId);
+        const roleLabel = personMeta.role === 'crew' ? personMeta.job : 'Actor';
+        path.push({ type: 'person', id: personId, name: personMeta.name, job: roleLabel, role: personMeta.role });
+      }
+    }
+    return path;
+  }
+
+  // ── Narration ────────────────────────────────────────────────────────
+
+  async function fetchNarration(path) {
+    const parts = path.map(node => {
+      if (node.type === 'film')   return `${node.title} (${node.year})`;
+      if (node.type === 'person') return `${node.name} [${node.job}]`;
+      return '';
+    });
+    const serialized = parts.join(' → ');
+    const personCount = path.filter(n => n.type === 'person').length;
+
+    const prompt = `You are a cinema scholar. For each connection in this verified film chain, write exactly one sentence explaining the cinematic significance of the link. Return only the sentences, one per line, numbered (1. 2. etc.). Chain: ${serialized}. Write ${personCount} sentence${personCount !== 1 ? 's' : ''} for ${personCount} connection${personCount !== 1 ? 's' : ''}.`;
+
+    const res = await fetch(ORACLE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 350,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content && data.content.map(i => i.text || '').join('') || '';
+    const sentences = text.split('\n')
+      .map(l => l.trim().replace(/^\d+\.\s*/, ''))
+      .filter(Boolean);
+    return sentences;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────
+
+  function roleClass(job) {
+    const j = (job || '').toLowerCase();
+    if (j === 'director')              return 'role-director';
+    if (j === 'actor')                 return 'role-actor';
+    if (j === 'screenplay')            return 'role-screenplay';
+    if (j === 'director of photography') return 'role-dp';
+    if (j === 'producer')              return 'role-producer';
+    return 'role-actor';
+  }
+
+  function buildFilmNodeHTML(node, filmIndex, totalFilms, animIndex) {
+    const isEndpoint = filmIndex === 0 || filmIndex === totalFilms - 1;
+    const poster = node.poster_path
+      ? `<img class="cn-poster" src="${IMG}${node.poster_path}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=cn-no-poster>✦</div>'">`
+      : '<div class="cn-no-poster">✦</div>';
+    return `
+      <div class="chain-node${isEndpoint ? ' endpoint' : ''}" style="animation-delay:${animIndex * 0.18}s">
+        <div class="cn-poster-wrap">${poster}</div>
+        <div>
+          <div class="cn-step">${ROMAN[filmIndex] || filmIndex + 1}</div>
+          <div class="cn-title">${esc(node.title)}</div>
+          <div class="cn-year">${esc(node.year)}</div>
+        </div>
+      </div>`;
+  }
+
+  function buildPersonLinkHTML(node, narration, animIndex) {
+    const rc = roleClass(node.job);
+    return `
+      <div class="chain-link" style="animation-delay:${animIndex * 0.18 + 0.09}s">
+        <div class="cl-line"></div>
+        <div class="cl-dot"></div>
+        <div class="cl-role ${rc}">${esc(node.job)}</div>
+        <div class="cl-text">${esc(narration || node.name)}</div>
+        <div class="cl-dot"></div>
+        <div class="cl-line"></div>
+      </div>`;
+  }
+
+  // ── Main orchestrator ────────────────────────────────────────────────
+
   async function buildChain() {
-    const filmA = document.getElementById('filmA').value.trim();
-    const filmB = document.getElementById('filmB').value.trim();
-    if (!filmA || !filmB) {
+    const filmAInput = document.getElementById('filmA').value.trim();
+    const filmBInput = document.getElementById('filmB').value.trim();
+    if (!filmAInput || !filmBInput) {
       document.getElementById('filmA').focus();
       return;
     }
 
     document.getElementById('submitBtn').disabled = true;
-    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('errorMsg').style.display   = 'none';
     document.getElementById('chainStage').style.display = 'none';
     document.getElementById('tryAgainWrap').style.display = 'none';
-    document.getElementById('errorMsg').style.display = 'none';
     document.getElementById('chain').innerHTML = '';
+    setStatus('Tracing the connection through the archives...');
+    document.getElementById('loadingState').style.display = 'block';
 
-    const prompt = `Two films have been named.
-Film A: "${filmA}"
-Film B: "${filmB}"
-
-Build a thematic, directorial, or actor-based chain connecting these two films in 4-6 steps (including Film A and Film B as the first and last steps). Each intermediate film must be a real film.
-
-Output EXACTLY in this format, one entry per line:
-FILM: [title and year, e.g. Casablanca (1942)]
-LINK: [specific connection to the next film — under 20 words, name the director, actor, or theme]
-FILM: [next title and year]
-LINK: [specific connection]
-...
-FILM: [Film B title and year]
-
-Rules: 4-6 films total. Each LINK must be specific. First film must be Film A, last must be Film B.`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), BFS_TIMEOUT_MS);
 
     try {
-      const res  = await fetch(ORACLE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
-      });
-      const data = await res.json();
-      const text = data.content && data.content.map(i => i.text || '').join('') || '';
-      const nodes = parseChain(text);
+      // 1. Resolve both films
+      const [filmAMeta, filmBMeta] = await Promise.all([
+        resolveFilm(filmAInput),
+        resolveFilm(filmBInput)
+      ]);
+      if (!filmAMeta) throw new Error('film-a-not-found');
+      if (!filmBMeta) throw new Error('film-b-not-found');
 
-      if (nodes.length < 2) throw new Error('chain too short');
+      // Handle same film
+      if (filmAMeta.id === filmBMeta.id) throw new Error('same-film');
 
-      // Fetch all TMDB posters in parallel
-      const tmdbData = await Promise.all(nodes.map(n => fetchPoster(n.title)));
+      // 2. BFS
+      const result = await bfsSearch(filmAMeta.id, filmBMeta.id, controller.signal);
+      clearTimeout(timer);
+
+      if (!result) throw new Error('no-path');
+
+      const path = reconstructPath(filmAMeta.id, filmBMeta.id, filmAMeta, filmBMeta, result.parentFilm, result.parentPerson);
+
+      // 3. Claude narration
+      setStatus('Composing the narrative...');
+      let narrations = [];
+      try {
+        narrations = await fetchNarration(path);
+      } catch(_) { /* narration is best-effort */ }
 
       document.getElementById('loadingState').style.display = 'none';
 
-      // Render chain
+      // 4. Render
+      const filmNodes = path.filter(n => n.type === 'film');
+      const totalFilms = filmNodes.length;
+      let filmIndex = 0;
+      let animIndex = 0;
+      let narrationIndex = 0;
       let html = '';
-      nodes.forEach((node, i) => {
-        html += buildNodeHTML(node, tmdbData[i], i, nodes.length);
-        if (node.link && i < nodes.length - 1) {
-          html += buildLinkHTML(node.link, i);
+
+      for (const node of path) {
+        if (node.type === 'film') {
+          html += buildFilmNodeHTML(node, filmIndex, totalFilms, animIndex);
+          filmIndex++;
+          animIndex++;
+        } else {
+          html += buildPersonLinkHTML(node, narrations[narrationIndex], animIndex);
+          narrationIndex++;
+          animIndex++;
         }
-      });
+      }
+
       document.getElementById('chain').innerHTML = html;
       document.getElementById('chainStage').style.display = 'block';
       document.getElementById('tryAgainWrap').style.display = 'block';
 
     } catch(e) {
+      clearTimeout(timer);
       document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('errorMsg').style.display = 'block';
+      const errEl = document.getElementById('errorMsg');
+      if (e.message === 'film-a-not-found' || e.message === 'film-b-not-found') {
+        errEl.textContent = 'Film not recognised — check the title and try again';
+      } else if (e.message === 'timeout' || controller.signal.aborted) {
+        errEl.textContent = 'The search took too long — please try again';
+      } else if (e.message === 'no-path') {
+        errEl.textContent = 'No direct connection found within three degrees — try films from the same era or studio';
+      } else {
+        errEl.textContent = 'No direct connection found within three degrees — try films from the same era or studio';
+      }
+      errEl.style.display = 'block';
       document.getElementById('submitBtn').disabled = false;
     }
   }

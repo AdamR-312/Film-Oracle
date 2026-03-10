@@ -200,7 +200,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">sixdegrees.html</div>
-        <div class="map-filedesc">The Projection Room — Six Degrees of Cinema, Claude builds the thematic chain between any two films</div>
+        <div class="map-filedesc">The Projection Room — Six Degrees of Cinema, TMDB BFS traces real cast/crew connections; Claude narrates each link</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
@@ -400,8 +400,8 @@ Their answers:
       </div>
     </div>
     <div class="prose">
-      <p>The Projection Room (<code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">sixdegrees.html</code>) takes two film titles from the visitor and constructs a 4–6 step thematic, directorial, or actor-based chain connecting them. The prompt instructs Claude to output the chain in a strict line-by-line format — alternating <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">FILM:</code> and <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">LINK:</code> entries — which is then parsed with regex.</p>
-      <p>Once the chain is parsed, all film titles (including the two user-entered films and the intermediate films Claude chose) are sent to the TMDB proxy simultaneously via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">Promise.all</code>. Each search returns a poster path, which is rendered as a glass film card. The chain animates in step by step using staggered CSS animation delays, with the endpoint films visually distinguished by a gold border.</p>
+      <p>The Projection Room (<code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">sixdegrees.html</code>) takes two film titles from the visitor and traces a factual connection between them using the TMDB database — no invented chains. Both titles are resolved to TMDB IDs via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">search/movie</code>, then a breadth-first search alternates between <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">movie/{id}/credits</code> and <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">person/{id}/movie_credits</code> to find a path of up to three film-to-film hops through shared directors, cast, writers, and cinematographers.</p>
+      <p>Once the BFS finds a verified path, Claude writes one sentence per connection explaining its cinematic significance. Each connector in the chain displays a role badge — gold for Director, muted cream for Actor — above the prose narration. The chain animates in step by step using staggered CSS animation delays, with the endpoint films visually distinguished by a gold border. A 12-second timeout guards against slow searches.</p>
     </div>
   </div>
 
