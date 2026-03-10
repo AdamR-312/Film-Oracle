@@ -47,7 +47,11 @@ main { max-width:800px; margin:0 auto; padding:64px 48px 140px; position:relativ
 .cn-title { font-family:'Playfair Display',serif; font-style:italic; font-size:22px; color:var(--cream); line-height:1.15; margin-bottom:5px; }
 .cn-year { font-family:'Cinzel',serif; font-size:8.5px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; }
 .chain-link { display:flex; flex-direction:column; align-items:center; padding:6px 0; opacity:0; animation:fadeUp 0.5s ease forwards; }
-.cl-line { width:1px; height:18px; background:linear-gradient(180deg,rgba(201,168,76,0.35),rgba(201,168,76,0.6)); }
+.cl-line { width:1px; height:18px; background:linear-gradient(180deg,rgba(201,168,76,0.35),rgba(201,168,76,0.6)); transform:scaleY(0); transform-origin:top center; animation:lineGrow 0.28s ease-out forwards var(--link-delay, 0s); }
+@keyframes lineGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
 .cl-dot { width:5px; height:5px; border-radius:50%; background:var(--gold-dim); margin:2px 0; box-shadow:0 0 6px rgba(201,168,76,0.4); }
 .cl-text { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:16px; color:var(--cream-muted); text-align:center; padding:6px 48px; line-height:1.55; }
 /* ── Role badge ──────────────────────────────────────────────────── */
@@ -387,8 +391,9 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 
   function buildPersonLinkHTML(node, narration, animIndex) {
     const rc = roleClass(node.job);
+    const d = `${animIndex * 0.18 + 0.09}s`;
     return `
-      <div class="chain-link" style="animation-delay:${animIndex * 0.18 + 0.09}s">
+      <div class="chain-link" style="animation-delay:${d}; --link-delay:${d}">
         <div class="cl-line"></div>
         <div class="cl-dot"></div>
         <div class="cl-role ${rc}">${esc(node.job)}</div>
