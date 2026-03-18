@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Double Feature — Adam's Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.room-label { font-family:'Cinzel',serif; font-size:10px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:20px; opacity:0; animation:fadeUp 0.8s ease forwards 0.2s; }
+h1 { opacity:0; animation:fadeUp 0.8s ease forwards 0.4s; }
+.header-ornament { opacity:0; animation:fadeUp 0.8s ease forwards 0.6s; }
+.header-sub { opacity:0; animation:fadeUp 0.8s ease forwards 0.8s; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+main { max-width:860px; margin:0 auto; padding:64px 48px 140px; position:relative; z-index:2; }
+
+/* ── Input stage ──────────────────────────────────────────────────── */
+.input-stage { opacity:0; animation:fadeUp 0.7s ease forwards 1s; }
+.input-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; text-shadow:0 0 10px rgba(201,168,76,0.4); margin-bottom:10px; display:block; }
+.film-input { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:22px; color:var(--cream); background:rgba(26,8,16,0.35); border:none; border-bottom:1px solid rgba(201,168,76,0.3); padding:14px 8px; outline:none; width:100%; transition:border-color 0.3s; backdrop-filter:blur(8px); margin-bottom:40px; display:block; }
+.film-input:focus { border-bottom-color:var(--gold); }
+.film-input::placeholder { color:var(--cream-muted); font-style:normal; font-size:14px; font-family:'Cinzel',serif; letter-spacing:1px; }
+.submit-wrap { text-align:center; }
+.submit-btn { font-family:'Playfair Display',serif; font-style:italic; font-size:20px; color:var(--cream); background:none; border:1px solid var(--gold-dim); padding:16px 56px; cursor:pointer; transition:all 0.35s; position:relative; }
+.submit-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(201,168,76,0.06),rgba(107,15,26,0.1)); opacity:0; transition:opacity 0.35s; }
+.submit-btn:hover:not(:disabled) { border-color:var(--gold); box-shadow:0 0 28px rgba(201,168,76,0.14); }
+.submit-btn:hover:not(:disabled)::before { opacity:1; }
+.submit-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.loading-state { text-align:center; padding:60px 20px; font-family:'Cinzel',serif; font-size:9px; letter-spacing:5px; color:var(--gold-dim); text-transform:uppercase; animation:pulse 1.5s ease-in-out infinite; display:none; }
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* ── Error ────────────────────────────────────────────────────────── */
+.error-msg { text-align:center; font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--crimson-bright); text-transform:uppercase; padding:32px 0; display:none; }
+
+/* ── Programme card ───────────────────────────────────────────────── */
+#resultStage { display:none; }
+.programme-card {
+  background:linear-gradient(135deg,rgba(26,8,16,0.28),rgba(15,5,8,0.35));
+  backdrop-filter:blur(20px) saturate(1.4);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
+  border:1px solid rgba(201,168,76,0.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 32px rgba(0,0,0,0.5);
+  padding:52px 56px 48px;
+  position:relative;
+  opacity:0;
+  animation:fadeUp 0.6s ease forwards;
+}
+.programme-card::before,.programme-card::after { content:''; position:absolute; width:18px; height:18px; border-color:rgba(201,168,76,0.35); border-style:solid; }
+.programme-card::before { top:-1px; left:-1px; border-width:1px 0 0 1px; }
+.programme-card::after  { bottom:-1px; right:-1px; border-width:0 1px 1px 0; }
+
+.programme-eyebrow { font-family:'Cinzel',serif; font-size:8px; letter-spacing:6px; color:var(--gold-dim); text-transform:uppercase; text-align:center; margin-bottom:10px; }
+.programme-title { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(28px,4vw,44px); color:var(--cream); text-align:center; margin-bottom:28px; line-height:1.05; }
+.programme-rule { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:44px; }
+.pr-line { flex:1; max-width:120px; height:1px; background:linear-gradient(90deg,transparent,var(--gold-dim)); }
+.pr-line.r { background:linear-gradient(270deg,transparent,var(--gold-dim)); }
+.pr-diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); }
+
+/* ── Film pair ────────────────────────────────────────────────────── */
+.film-pair { display:grid; grid-template-columns:1fr 32px 1fr; align-items:start; gap:0; margin-bottom:44px; }
+.film-slot { display:flex; flex-direction:column; align-items:center; gap:0; }
+.film-poster-wrap { width:100%; max-width:200px; aspect-ratio:2/3; overflow:hidden; background:rgba(26,8,16,0.6); border:1px solid rgba(201,168,76,0.15); margin-bottom:18px; position:relative; }
+.film-poster { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(0.8) brightness(0.9); transition:filter 0.4s; }
+.film-slot:hover .film-poster { filter:saturate(1) brightness(1); }
+.no-poster { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:rgba(201,168,76,0.12); font-size:36px; }
+.film-badge { position:absolute; top:10px; left:10px; font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; text-shadow:0 0 8px rgba(201,168,76,0.6); }
+.film-slot-title { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(17px,2.2vw,22px); color:var(--cream); text-align:center; line-height:1.2; margin-bottom:7px; max-width:200px; }
+.film-slot-year { font-family:'Cinzel',serif; font-size:8px; letter-spacing:3px; color:var(--gold-dim); text-transform:uppercase; text-align:center; }
+
+.pair-connector { display:flex; align-items:center; justify-content:center; padding-top:80px; font-family:'EB Garamond',serif; font-size:22px; color:var(--gold-dim); }
+
+/* ── Programme note ───────────────────────────────────────────────── */
+.note-rule { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+.note-rule-line { flex:1; height:1px; background:rgba(201,168,76,0.12); }
+.note-rule-label { font-family:'Cinzel',serif; font-size:7.5px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; white-space:nowrap; text-shadow:0 0 10px rgba(201,168,76,0.4); }
+.programme-note { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:19px; color:var(--cream-dim); line-height:1.75; text-align:center; max-width:580px; margin:0 auto; }
+
+/* ── Reset ────────────────────────────────────────────────────────── */
+.reset-wrap { text-align:center; margin-top:44px; }
+.reset-btn { font-family:'Cinzel',serif; font-size:9px; letter-spacing:4px; color:var(--gold-dim); text-transform:uppercase; border:1px solid rgba(201,168,76,0.2); padding:12px 32px; background:none; cursor:pointer; transition:all 0.3s; display:inline-flex; align-items:center; gap:12px; }
+.reset-btn:hover { color:var(--gold); border-color:rgba(201,168,76,0.4); box-shadow:0 0 20px rgba(201,168,76,0.1); }
+.reset-line { width:18px; height:1px; background:currentColor; transition:width 0.3s; }
+.reset-btn:hover .reset-line { width:28px; }
+
+footer { border-top:1px solid rgba(201,168,76,0.08); }
+
+@media(max-width:640px) {
+  main { padding:48px 24px 100px; }
+  .film-pair { grid-template-columns:1fr 24px 1fr; }
+  .pair-connector { padding-top:60px; font-size:18px; }
+  .programme-card { padding:36px 28px 36px; }
+  .programme-note { font-size:17px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ceiling"></div>
+<div class="ceiling-glow"></div>
+<div class="floor"></div>
+<div class="floor-glow"></div>
+
+<nav class="nav">
+  <a class="nav-back" href="index.html">
+    <div class="nav-back-line"></div>
+    Grand Lobby
+  </a>
+  <span class="nav-title">Double Feature</span>
+</nav>
+
+<header>
+  <div class="room-label">The Screening Room</div>
+  <h1>Double <em>Feature</em></h1>
+  <div class="header-ornament">
+    <div class="orn-line"></div>
+    <div class="orn-diamond"></div>
+    <div class="orn-line r"></div>
+  </div>
+  <p class="header-sub">Name a film. The oracle finds its perfect companion.</p>
+</header>
+
+<main>
+
+  <!-- Input stage -->
+  <div class="input-stage" id="inputStage">
+    <label class="input-label" for="filmInput">Enter a film title</label>
+    <input
+      class="film-input"
+      id="filmInput"
+      type="text"
+      placeholder="e.g. Chinatown, Mulholland Drive, The Godfather"
+      autocomplete="off"
+    >
+    <div class="submit-wrap">
+      <button class="submit-btn" id="submitBtn">Find My Double Bill</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loadingState">Searching the archives...</div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Result -->
+  <div id="resultStage">
+    <div class="programme-card" id="programmeCard">
+      <div class="programme-eyebrow">Tonight's Programme</div>
+      <div class="programme-title" id="programmePairing"></div>
+      <div class="programme-rule">
+        <div class="pr-line"></div>
+        <div class="pr-diamond"></div>
+        <div class="pr-line r"></div>
+      </div>
+
+      <div class="film-pair">
+        <!-- Film A -->
+        <div class="film-slot" id="slotA">
+          <div class="film-poster-wrap">
+            <div class="film-badge">Feature</div>
+            <div class="no-poster" id="noPosterA">✦</div>
+            <img class="film-poster" id="posterA" src="" alt="" style="display:none">
+          </div>
+          <div class="film-slot-title" id="titleA"></div>
+          <div class="film-slot-year" id="yearA"></div>
+        </div>
+
+        <!-- Connector -->
+        <div class="pair-connector">✦</div>
+
+        <!-- Film B -->
+        <div class="film-slot" id="slotB">
+          <div class="film-poster-wrap">
+            <div class="film-badge">Double Bill</div>
+            <div class="no-poster" id="noPosterB">✦</div>
+            <img class="film-poster" id="posterB" src="" alt="" style="display:none">
+          </div>
+          <div class="film-slot-title" id="titleB"></div>
+          <div class="film-slot-year" id="yearB"></div>
+        </div>
+      </div>
+
+      <!-- Programme note -->
+      <div class="note-rule">
+        <div class="note-rule-line"></div>
+        <div class="note-rule-label">The Programmer's Note</div>
+        <div class="note-rule-line"></div>
+      </div>
+      <p class="programme-note" id="programmeNote"></p>
+
+      <!-- Reset -->
+      <div class="reset-wrap">
+        <button class="reset-btn" id="resetBtn">
+          <div class="reset-line"></div>
+          New Pairing
+          <div class="reset-line"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-mark">Adam's Cinema</div>
+  <div class="footer-sub">Please silence your devices &nbsp;·&nbsp; No outside food or drink</div>
+</footer>
+
+<script>
+(function () {
+  const WORKER      = 'https://tmdb-proxy.adamrowe312.workers.dev';
+  const ORACLE      = 'https://oracle-proxy.adamrowe312.workers.dev';
+  const POSTER_BASE = 'https://image.tmdb.org/t/p/w342';
+
+  const inputStage  = document.getElementById('inputStage');
+  const filmInput   = document.getElementById('filmInput');
+  const submitBtn   = document.getElementById('submitBtn');
+  const loadingEl   = document.getElementById('loadingState');
+  const errorEl     = document.getElementById('errorMsg');
+  const resultStage = document.getElementById('resultStage');
+  const resetBtn    = document.getElementById('resetBtn');
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+
+  function setPhase(phase) {
+    inputStage.style.display  = phase === 'input'   ? 'block'  : 'none';
+    loadingEl.style.display   = phase === 'loading' ? 'block'  : 'none';
+    errorEl.style.display     = phase === 'error'   ? 'block'  : 'none';
+    resultStage.style.display = phase === 'result'  ? 'block'  : 'none';
+    if (phase !== 'loading') loadingEl.style.animation = 'none';
+    else loadingEl.style.animation = '';
+  }
+
+  function setLoadingText(text) {
+    loadingEl.textContent = text;
+  }
+
+  function showError(msg) {
+    errorEl.textContent = msg;
+    setPhase('error');
+    // Show reset below error
+    const wrap = document.createElement('div');
+    wrap.className = 'reset-wrap';
+    wrap.style.marginTop = '32px';
+    const btn = document.createElement('button');
+    btn.className = 'reset-btn';
+    btn.innerHTML = '<div class="reset-line"></div>Try Again<div class="reset-line"></div>';
+    btn.addEventListener('click', reset);
+    wrap.appendChild(btn);
+    errorEl.insertAdjacentElement('afterend', wrap);
+  }
+
+  // ── API calls ─────────────────────────────────────────────────────────
+
+  async function searchFilm(query) {
+    const res = await fetch(`${WORKER}/search/movie?query=${encodeURIComponent(query)}&page=1`);
+    if (!res.ok) throw new Error('tmdb');
+    const data = await res.json();
+    const results = data.results || [];
+    if (!results.length) throw new Error('not-found');
+    // Prefer a result with a poster
+    return results.find(m => m.poster_path) || results[0];
+  }
+
+  async function getPairing(title, year) {
+    const prompt =
+      `You are a master film programmer at an arthouse cinema with encyclopaedic knowledge ` +
+      `of cinema history. Your pairings are thoughtful, surprising, and rooted in genuine ` +
+      `thematic or aesthetic resonance — never the obvious choice.\n\n` +
+      `Suggest a double feature pairing for: "${title} (${year})"\n\n` +
+      `Return ONLY valid JSON with no markdown fences, no extra text:\n` +
+      `{"pairing":"Film Title","year":1974,"note":"Three sentences explaining the thematic, ` +
+      `tonal, or aesthetic connection between these two films."}`;
+
+    const res = await fetch(ORACLE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 250,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) throw new Error('oracle');
+    const data = await res.json();
+    const text = (data.content || []).map(c => c.text || '').join('');
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('parse');
+    return JSON.parse(match[0]);
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────
+
+  function renderFilmSlot(posterEl, noPosterEl, titleEl, yearEl, film, fallbackTitle, fallbackYear) {
+    const title  = film ? film.title : fallbackTitle;
+    const year   = film ? (film.release_date || '').slice(0, 4) : (fallbackYear ? String(fallbackYear) : '');
+    const poster = film ? film.poster_path : null;
+
+    titleEl.textContent = title;
+    yearEl.textContent  = year;
+
+    if (poster) {
+      posterEl.src             = POSTER_BASE + poster;
+      posterEl.alt             = title;
+      posterEl.style.display   = 'block';
+      noPosterEl.style.display = 'none';
+      posterEl.addEventListener('error', () => {
+        posterEl.style.display   = 'none';
+        noPosterEl.style.display = 'flex';
+      });
+    } else {
+      posterEl.style.display   = 'none';
+      noPosterEl.style.display = 'flex';
+    }
+  }
+
+  function renderResult(filmA, filmB, pairing) {
+    // Programme title: "Film A  ✦  Film B"
+    document.getElementById('programmePairing').textContent =
+      `${filmA.title}  ✦  ${pairing.pairing}`;
+
+    // Slot A
+    renderFilmSlot(
+      document.getElementById('posterA'),
+      document.getElementById('noPosterA'),
+      document.getElementById('titleA'),
+      document.getElementById('yearA'),
+      filmA, filmA.title, ''
+    );
+
+    // Slot B
+    renderFilmSlot(
+      document.getElementById('posterB'),
+      document.getElementById('noPosterB'),
+      document.getElementById('titleB'),
+      document.getElementById('yearB'),
+      filmB, pairing.pairing, pairing.year
+    );
+
+    document.getElementById('programmeNote').textContent = pairing.note;
+
+    // Re-trigger animation on card
+    const card = document.getElementById('programmeCard');
+    card.style.animation = 'none';
+    card.offsetHeight; // reflow
+    card.style.animation = '';
+
+    setPhase('result');
+  }
+
+  // ── Main flow ─────────────────────────────────────────────────────────
+
+  async function run() {
+    const query = filmInput.value.trim();
+    if (!query) return;
+
+    submitBtn.disabled = true;
+    setPhase('loading');
+
+    // Remove any previous try-again button appended below error
+    document.querySelectorAll('#errorMsg + .reset-wrap').forEach(el => el.remove());
+
+    try {
+      setLoadingText('Searching the archives...');
+      const filmA = await searchFilm(query);
+
+      setLoadingText('Consulting the oracle...');
+      const pairing = await getPairing(filmA.title, (filmA.release_date || '').slice(0, 4));
+
+      setLoadingText('Tracking down your double bill...');
+      let filmB = null;
+      try {
+        filmB = await searchFilm(`${pairing.pairing} ${pairing.year}`);
+      } catch (_) {
+        // No TMDB match for the pairing — render without poster
+      }
+
+      renderResult(filmA, filmB, pairing);
+
+    } catch (err) {
+      let msg = 'Something went wrong. Please try again.';
+      if (err.message === 'not-found') msg = 'Film not found. Try another title.';
+      if (err.message === 'oracle')    msg = 'The oracle is indisposed. Please try again.';
+      if (err.message === 'parse')     msg = 'The oracle spoke in riddles. Please try again.';
+      showError(msg);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────
+
+  function reset() {
+    filmInput.value = '';
+    document.querySelectorAll('#errorMsg + .reset-wrap').forEach(el => el.remove());
+    setPhase('input');
+    filmInput.focus();
+  }
+
+  // ── Events ────────────────────────────────────────────────────────────
+
+  submitBtn.addEventListener('click', run);
+  filmInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+  resetBtn.addEventListener('click', reset);
+
+  // Start in input phase
+  setPhase('input');
+})();
+</script>
+
+</body>
+</html>

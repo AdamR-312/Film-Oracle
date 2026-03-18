@@ -45,14 +45,15 @@ All pages share one stylesheet ([style.css](style.css)) for the cinema theme (ve
 | [classic.html](classic.html) | Internet Archive public domain film browser |
 | [concession.html](concession.html) | Fill-in-the-blank famous movie quotes game via Claude |
 | [sixdegrees.html](sixdegrees.html) | Six Degrees of Cinema — thematic chain builder via Claude |
+| [doublefeature.html](doublefeature.html) | Double Feature — enter one film, Claude suggests a paired double bill with programmer's note |
 | [staff.html](staff.html) | Technical showcase / about page |
 
 ### External Services
 
 Two Cloudflare Workers proxy all external API calls (no keys exposed client-side):
 
-- **`https://oracle-proxy.adamrowe312.workers.dev`** — proxies Anthropic Claude API (`claude-sonnet-4-20250514`). Used by: Oracle (recommendation), Concession Stand (in-character quote responses), Six Degrees (chain building), Oracle Dossier (viewing guide second call).
-- **`https://tmdb-proxy.adamrowe312.workers.dev`** — proxies TMDB API. Used for: trending/upcoming filmstrips (index), movie poster + backdrop (oracle result), similar films grid (oracle result), and collection posters.
+- **`https://oracle-proxy.adamrowe312.workers.dev`** — proxies Anthropic Claude API (`claude-sonnet-4-20250514`). Used by: Oracle (recommendation), Concession Stand (in-character quote responses), Six Degrees (chain building), Oracle Dossier (viewing guide second call), Double Feature (pairing suggestion).
+- **`https://tmdb-proxy.adamrowe312.workers.dev`** — proxies TMDB API. Used for: trending/upcoming filmstrips (index), movie poster + backdrop (oracle result), similar films grid (oracle result), collection posters, Six Degrees film/credits resolution, Double Feature film poster resolution.
 - **Wikipedia REST API** — `en.wikipedia.org/api/rest_v1/page/summary/{name}` — called directly from browser (open CORS, no key). Used for director bio panel in Oracle.
 - **Internet Archive API** — `archive.org/advancedsearch.php` — called directly from browser (no credentials). Used by classic.html for public domain film browsing.
 

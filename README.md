@@ -1,6 +1,6 @@
 # Adam's Cinema
 
-A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Nine standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
+A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Ten standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
 
 **Live site:** [adamr-312.github.io/Film-Oracle](https://adamr-312.github.io/Film-Oracle)
 
@@ -18,7 +18,8 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 | `indie.html` | Screening Room No. 4 | Resources, forums, and state of independent exhibition |
 | `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
 | `concession.html` | The Concession Stand | Fill-in-the-blank famous quotes — Claude responds in character as the original speaker |
-| `sixdegrees.html` | The Projection Room | Six Degrees of Cinema — Claude builds the thematic chain between any two films |
+| `sixdegrees.html` | The Projection Room | Six Degrees of Cinema — TMDB-verified cast/crew chain between any two films; Claude narrates each link |
+| `doublefeature.html` | The Screening Room | Double Feature — enter one film, Claude suggests a paired double bill and writes the programmer's note |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
 ---
@@ -30,8 +31,8 @@ The site is fully static. Every page is a self-contained HTML file that runs dir
 Different APIs are handled differently based on whether they require credentials:
 
 **Proxied (keys must stay server-side):**
-- **TMDB** — Top 25 lists, dual filmstrips, Oracle result enrichment. All requests route through `tmdb-proxy.adamrowe312.workers.dev`.
-- **Anthropic** — Oracle recommendations. Requests route through `oracle-proxy.adamrowe312.workers.dev`.
+- **TMDB** — Top 25 lists, dual filmstrips, Oracle result enrichment, Six Degrees film/credits resolution, Double Feature poster resolution. All requests route through `tmdb-proxy.adamrowe312.workers.dev`.
+- **Anthropic** — Oracle recommendations, Concession Stand in-character responses, Six Degrees chain narration, Double Feature pairing suggestions. Requests route through `oracle-proxy.adamrowe312.workers.dev`.
 
 **Called directly from the browser (no credentials):**
 - **Wikipedia REST API** — Director biography panel on Oracle results. Open, CORS-enabled, no key required.
@@ -140,6 +141,14 @@ The Concession Stand (`concession.html`) displays a famous movie quote with the 
 
 ---
 
+## Double Feature
+
+The Screening Room (`doublefeature.html`) takes one film title, resolves it via TMDB, then asks Claude to suggest a double bill pairing — a second film that shares a thematic, tonal, or aesthetic connection with the first.
+
+Claude returns a JSON object with the pairing title, year, and a three-sentence programmer's note. The pairing title is then resolved through TMDB to retrieve a poster. Both films render side by side in a "Tonight's Programme" card with the programmer's note below. If TMDB cannot find a poster for the suggested pairing, the title and year still display without a poster image.
+
+---
+
 ## The Archive
 
 The Archive page (`classic.html`) fetches public domain films directly from the Internet Archive API — no key, no proxy.
@@ -235,6 +244,7 @@ Film-Oracle/
 ├── classic.html        # The Archive (public domain cinema)
 ├── concession.html     # The Concession Stand (fill-in-the-blank quotes)
 ├── sixdegrees.html     # The Projection Room (Six Degrees of Cinema)
+├── doublefeature.html  # The Screening Room (Double Feature pairing)
 ├── staff.html          # Technical documentation
 ├── style.css           # Shared design system
 ├── CLAUDE.md           # Repository guide for Claude Code
