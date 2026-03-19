@@ -44,7 +44,7 @@ All pages share one stylesheet ([style.css](style.css)) for the cinema theme (ve
 | [indie.html](indie.html) | Independent & local theatre guide |
 | [classic.html](classic.html) | Internet Archive public domain film browser |
 | [concession.html](concession.html) | Fill-in-the-blank famous movie quotes game via Claude |
-| [sixdegrees.html](sixdegrees.html) | Six Degrees of Cinema — thematic chain builder via Claude |
+| [sixdegrees.html](sixdegrees.html) | Four Degrees of Cinema — Claude-propose + TMDB-verify chain builder; 1-hop, 2-hop, or 3-hop paths |
 | [doublefeature.html](doublefeature.html) | Double Feature — enter one film, Claude suggests a paired double bill with programmer's note |
 | [staff.html](staff.html) | Technical showcase / about page |
 

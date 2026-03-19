@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Six Degrees of Cinema — Adam's Cinema</title>
+<title>Four Degrees of Cinema — Adam's Cinema</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;500;600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -90,18 +90,18 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     <div class="nav-back-line"></div>
     Grand Lobby
   </a>
-  <span class="nav-title">Six Degrees of Cinema</span>
+  <span class="nav-title">Four Degrees of Cinema</span>
 </nav>
 
 <header>
-  <div class="room-label">The Projection Room</div>
-  <h1>Six <em>Degrees</em></h1>
+  <div class="room-label">Four Degrees</div>
+  <h1>Four <em>Degrees</em></h1>
   <div class="header-ornament">
     <div class="orn-line"></div>
     <div class="orn-diamond"></div>
     <div class="orn-line r"></div>
   </div>
-  <p class="header-sub">Name two films. The archive traces the real connections between them.</p>
+  <p class="header-sub">Name two films. The archive traces the real chain connecting them — up to four degrees.</p>
 </header>
 
 <main>
@@ -165,11 +165,11 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 
   // ── TMDB helpers ────────────────────────────────────────────────────
 
-  async function fetchWithRetry(url, signal) {
-    let res = await fetch(url, { signal });
+  async function fetchWithRetry(url) {
+    let res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     if (res.status === 429) {
       await new Promise(r => setTimeout(r, 1200));
-      res = await fetch(url, { signal });
+      res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
@@ -191,9 +191,9 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     };
   }
 
-  async function fetchCredits(filmId, signal) {
+  async function fetchCredits(filmId) {
     if (!_creditsCache.has(filmId)) {
-      _creditsCache.set(filmId, fetchWithRetry(`${TMDB}/movie/${filmId}/credits`, signal).then(data => {
+      _creditsCache.set(filmId, fetchWithRetry(`${TMDB}/movie/${filmId}/credits`).then(data => {
         const cast = (data.cast || []).filter(p => p.order <= 15).map(p => ({
           id: p.id, name: p.name, job: 'Actor', role: 'cast'
         }));
@@ -216,7 +216,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 
   async function suggestAndNarrate(filmA, filmB, failureHint = null) {
     const retryNote = failureHint
-      ? `\nIMPORTANT: A previous suggestion failed TMDB verification: ${failureHint}. Please suggest a different real person.`
+      ? `\nIMPORTANT: A previous suggestion failed TMDB verification: ${failureHint}. Please suggest a different real person or path.`
       : '';
 
     const prompt = `You are connecting two films via real shared cast or crew verified by TMDB.
@@ -225,31 +225,43 @@ Film A: "${filmA.title}" (${filmA.year})
 Film B: "${filmB.title}" (${filmB.year})
 ${retryNote}
 
-Find the shortest real connection (prefer direct 1-hop via shared person; use 2-hop with one intermediate film only if necessary).
+Find the shortest real connection. Prefer 1-hop (shared person). Use 2-hop (one intermediate film) or 3-hop (two intermediate films) only if necessary.
 
 Respond in EXACTLY this format — no other text:
 
 PATH:
 PERSON: [exact full name as credited in TMDB]
 ROLE_A: [their role in Film A: Actor|Director|Screenplay|Producer|Director of Photography]
-ROLE_B: [their role in Film B: same options — only include if direct 1-hop connection]
-INTERM: [intermediate film title — only include if 2-hop connection is needed]
-PERSON2: [second person's name — only include if 2-hop]
-ROLE_B2: [second person's role in Film B — only include if 2-hop]
+ROLE_B: [their role in Film B — only include for 1-hop]
+INTERM: [first intermediate film title — only for 2-hop or 3-hop]
+PERSON2: [second person's name — only for 2-hop or 3-hop]
+ROLE_B2: [person2's role in INTERM — only for 2-hop or 3-hop]
+INTERM2: [second intermediate film title — only for 3-hop]
+PERSON3: [third person's name — only for 3-hop]
+ROLE_B3: [person3's role in Film B — only for 3-hop]
 
 NARRATION:
-1. [One sentence about the first person's connection — mention both films and the person's role]
-2. [One sentence about second connection — only include if 2-hop]`;
+1. [One sentence about person1's connection — mention their role and both films they link]
+2. [One sentence about person2's connection — only for 2-hop or 3-hop]
+3. [One sentence about person3's connection — only for 3-hop]`;
 
-    const res = await fetch(ORACLE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 350,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
+    let res;
+    try {
+      res = await fetch(ORACLE, {
+        signal: controller.signal,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 300,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) throw new Error('oracle');
     const data = await res.json();
     return data.content[0].text;
@@ -275,31 +287,47 @@ NARRATION:
           .filter(Boolean)
       : [];
 
-    const person = get('PERSON');
-    const roleA  = get('ROLE_A');
-    const roleB  = get('ROLE_B');
+    const person  = get('PERSON');
+    const roleA   = get('ROLE_A');
+    const roleB   = get('ROLE_B');
     const interm  = get('INTERM');
     const person2 = get('PERSON2');
     const roleB2  = get('ROLE_B2');
+    const interm2 = get('INTERM2');
+    const person3 = get('PERSON3');
+    const roleB3  = get('ROLE_B3');
 
     if (!person || !roleA) return null;
 
+    // 3-hop: requires both intermediate films and all three people
+    if (interm && person2 && interm2 && person3) {
+      return {
+        type: '3hop',
+        person1: person,  role1inA: roleA,
+        intermFilm: interm,
+        person2,          role2inInterm: roleB2 || 'Actor',
+        intermFilm2: interm2,
+        person3,          role3inB: roleB3 || 'Actor',
+        narration: narrationLines
+      };
+    }
+
+    // 2-hop: one intermediate film + second person
     if (interm && person2) {
-      // 2-hop
       return {
         type: '2hop',
         person1: person, role1inA: roleA, intermFilm: interm,
         person2, role2inB: roleB2 || roleA,
         narration: narrationLines
       };
-    } else {
-      // 1-hop
-      return {
-        type: '1hop',
-        person, roleInA: roleA, roleInB: roleB || roleA,
-        narration: narrationLines
-      };
     }
+
+    // 1-hop: direct shared person
+    return {
+      type: '1hop',
+      person, roleInA: roleA, roleInB: roleB || roleA,
+      narration: narrationLines
+    };
   }
 
   // ── Verify Claude's suggestion against TMDB ──────────────────────────
@@ -344,17 +372,13 @@ NARRATION:
         return { verified: false, reason: `"${suggestion.person1}" not found in credits of "${filmDataA.title}"` };
       }
 
-      // Resolve intermediate film
       let intermData;
       try { intermData = await resolveFilm(suggestion.intermFilm); }
-      catch(_) {
-        return { verified: false, reason: `Intermediate film "${suggestion.intermFilm}" not found in TMDB` };
-      }
+      catch(_) { intermData = null; }
       if (!intermData) {
         return { verified: false, reason: `Intermediate film "${suggestion.intermFilm}" not found in TMDB` };
       }
 
-      // Fetch intermediate film credits
       let intermCredits;
       try { intermCredits = await fetchCredits(intermData.id); }
       catch(_) {
@@ -372,24 +396,91 @@ NARRATION:
         return { verified: false, reason: `"${suggestion.person2}" not found connecting "${intermData.title}" to "${filmDataB.title}"` };
       }
 
-      const person1Node = {
-        type: 'person', id: matchA.id, name: matchA.name,
-        job: suggestion.role1inA,
-        role: PREFERRED_JOBS.includes(suggestion.role1inA) ? 'crew' : 'cast'
+      return {
+        verified: true,
+        path: [
+          { type: 'film', ...filmDataA },
+          { type: 'person', id: matchA.id, name: matchA.name,
+            job: suggestion.role1inA,
+            role: PREFERRED_JOBS.includes(suggestion.role1inA) ? 'crew' : 'cast' },
+          { type: 'film', ...intermData },
+          { type: 'person', id: match2inB.id, name: match2inB.name,
+            job: suggestion.role2inB,
+            role: PREFERRED_JOBS.includes(suggestion.role2inB) ? 'crew' : 'cast' },
+          { type: 'film', ...filmDataB }
+        ],
+        narration: suggestion.narration
       };
-      const person2Node = {
-        type: 'person', id: match2inB.id, name: match2inB.name,
-        job: suggestion.role2inB,
-        role: PREFERRED_JOBS.includes(suggestion.role2inB) ? 'crew' : 'cast'
-      };
+    }
+
+    if (suggestion.type === '3hop') {
+      const matchA = findInCredits(creditsA, suggestion.person1);
+      if (!matchA) {
+        return { verified: false, reason: `"${suggestion.person1}" not found in credits of "${filmDataA.title}"` };
+      }
+
+      // Resolve both intermediate films in parallel
+      let intermData1, intermData2;
+      try {
+        [intermData1, intermData2] = await Promise.all([
+          resolveFilm(suggestion.intermFilm),
+          resolveFilm(suggestion.intermFilm2)
+        ]);
+      } catch(_) { intermData1 = null; intermData2 = null; }
+
+      if (!intermData1) {
+        return { verified: false, reason: `Intermediate film "${suggestion.intermFilm}" not found in TMDB` };
+      }
+      if (!intermData2) {
+        return { verified: false, reason: `Intermediate film "${suggestion.intermFilm2}" not found in TMDB` };
+      }
+
+      // Fetch both intermediate credits in parallel
+      let intermCredits1, intermCredits2;
+      try {
+        [intermCredits1, intermCredits2] = await Promise.all([
+          fetchCredits(intermData1.id),
+          fetchCredits(intermData2.id)
+        ]);
+      } catch(_) {
+        return { verified: false, reason: `Could not fetch credits for intermediate films` };
+      }
+
+      // person1: filmA → interm1
+      const match1inInterm1 = findInCredits(intermCredits1, suggestion.person1);
+      if (!match1inInterm1) {
+        return { verified: false, reason: `"${suggestion.person1}" not found in credits of "${intermData1.title}"` };
+      }
+
+      // person2: interm1 → interm2
+      const match2inInterm1 = findInCredits(intermCredits1, suggestion.person2);
+      const match2inInterm2 = findInCredits(intermCredits2, suggestion.person2);
+      if (!match2inInterm1 || !match2inInterm2) {
+        return { verified: false, reason: `"${suggestion.person2}" not found bridging "${intermData1.title}" and "${intermData2.title}"` };
+      }
+
+      // person3: interm2 → filmB
+      const match3inInterm2 = findInCredits(intermCredits2, suggestion.person3);
+      const match3inB       = findInCredits(creditsB, suggestion.person3);
+      if (!match3inInterm2 || !match3inB) {
+        return { verified: false, reason: `"${suggestion.person3}" not found connecting "${intermData2.title}" to "${filmDataB.title}"` };
+      }
 
       return {
         verified: true,
         path: [
           { type: 'film', ...filmDataA },
-          person1Node,
-          { type: 'film', ...intermData },
-          person2Node,
+          { type: 'person', id: matchA.id, name: matchA.name,
+            job: suggestion.role1inA,
+            role: PREFERRED_JOBS.includes(suggestion.role1inA) ? 'crew' : 'cast' },
+          { type: 'film', ...intermData1 },
+          { type: 'person', id: match2inInterm1.id, name: match2inInterm1.name,
+            job: suggestion.role2inInterm,
+            role: PREFERRED_JOBS.includes(suggestion.role2inInterm) ? 'crew' : 'cast' },
+          { type: 'film', ...intermData2 },
+          { type: 'person', id: match3inB.id, name: match3inB.name,
+            job: suggestion.role3inB,
+            role: PREFERRED_JOBS.includes(suggestion.role3inB) ? 'crew' : 'cast' },
           { type: 'film', ...filmDataB }
         ],
         narration: suggestion.narration
@@ -505,7 +596,7 @@ NARRATION:
       const [creditsA, creditsB] = await Promise.all([
         fetchCredits(filmDataA.id),
         fetchCredits(filmDataB.id)
-      ]);
+      ]); // each fetchCredits call uses its own AbortSignal.timeout internally
 
       // Phase 3: Direct TMDB intersection check (no Claude needed)
       const personSetB = new Map(creditsB.map(p => [p.id, p]));
@@ -514,13 +605,10 @@ NARRATION:
       if (directMatch) {
         const job  = directMatch.job || 'Actor';
         const role = PREFERRED_JOBS.includes(job) ? 'crew' : 'cast';
-
-        setStatus('Composing the narrative...');
-        // Ask Claude only for narration prose
-        const narrationText = await suggestAndNarrate(filmDataA, filmDataB);
-        const parsed = parseSuggestion(narrationText);
-        const narration = parsed ? parsed.narration : [];
-
+        const article = 'aeiou'.includes((job)[0].toLowerCase()) ? 'an' : 'a';
+        const narration = [
+          `${directMatch.name} served as ${article} ${job} on both ${filmDataA.title} and ${filmDataB.title}, forging a direct creative link between the two films.`
+        ];
         const path = [
           { type: 'film', ...filmDataA },
           { type: 'person', id: directMatch.id, name: directMatch.name, job, role },

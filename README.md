@@ -1,6 +1,6 @@
 # Adam's Cinema
 
-A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Ten standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
+A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no dependencies. Eleven standalone pages hosted on GitHub Pages, with live data from multiple APIs. API keys are secured through Cloudflare Worker proxies; open APIs (Wikipedia, Internet Archive) are called directly from the browser without a proxy.
 
 **Live site:** [adamr-312.github.io/Film-Oracle](https://adamr-312.github.io/Film-Oracle)
 
@@ -18,7 +18,7 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 | `indie.html` | Screening Room No. 4 | Resources, forums, and state of independent exhibition |
 | `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
 | `concession.html` | The Concession Stand | Fill-in-the-blank famous quotes — Claude responds in character as the original speaker |
-| `sixdegrees.html` | The Projection Room | Six Degrees of Cinema — TMDB-verified cast/crew chain between any two films; Claude narrates each link |
+| `sixdegrees.html` | Four Degrees | Four Degrees of Cinema — TMDB-verified cast/crew chain between any two films, up to 3 hops; Claude narrates each link |
 | `doublefeature.html` | The Double Bill | Double Feature — enter one film, Claude suggests a paired double bill and writes the programmer's note |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
@@ -127,11 +127,11 @@ Each list fetches four pages of results simultaneously (~80 candidates), then fi
 
 ---
 
-## Six Degrees of Cinema
+## Four Degrees of Cinema
 
-The Projection Room (`sixdegrees.html`) takes two film titles and constructs a 4–6 step thematic, directorial, or actor-based chain connecting them.
+Four Degrees (`sixdegrees.html`) takes two film titles and traces a factual cast or crew chain connecting them — up to 3 hops, meaning up to 4 films and 3 connecting people.
 
-The prompt instructs Claude to output the chain in a strict alternating `FILM:` / `LINK:` format, parsed by the client with regex. Once the chain is extracted, all film titles — including user-entered films and Claude's intermediate choices — are sent to the TMDB proxy simultaneously via `Promise.all`. Each search returns a poster, rendered as a glass film card. The chain animates in step by step with staggered CSS delays.
+Both titles are resolved via TMDB `search/movie` and their credits fetched. A direct intersection check runs first: if the two films share a person ID, the path is built immediately with no Claude call needed. Otherwise, Claude proposes a 1-hop, 2-hop, or 3-hop path in a structured `PATH:` / `NARRATION:` format, verified against real TMDB credits before being accepted. If verification fails, a second attempt fires with the failure reason injected into the prompt. Intermediate films in 3-hop paths are resolved in parallel via `Promise.all`. Once a verified path is confirmed, the chain renders as vertical glassmorphism cards with staggered animation delays, endpoint films distinguished by a gold border.
 
 ---
 
@@ -243,7 +243,7 @@ Film-Oracle/
 ├── indie.html          # Indie & local theatres
 ├── classic.html        # The Archive (public domain cinema)
 ├── concession.html     # The Concession Stand (fill-in-the-blank quotes)
-├── sixdegrees.html     # The Projection Room (Six Degrees of Cinema)
+├── sixdegrees.html     # Four Degrees (Four Degrees of Cinema)
 ├── doublefeature.html  # The Double Bill (Double Feature pairing)
 ├── staff.html          # Technical documentation
 ├── style.css           # Shared design system

@@ -200,7 +200,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       <div class="map-file">
         <div class="map-indent"></div>
         <div class="map-filename">sixdegrees.html</div>
-        <div class="map-filedesc">The Projection Room — Six Degrees of Cinema, TMDB BFS traces real cast/crew connections; Claude narrates each link</div>
+        <div class="map-filedesc">Four Degrees — Four Degrees of Cinema, Claude-propose + TMDB-verify traces real cast/crew chains up to 3 hops; Claude narrates each link</div>
         <div class="map-status live">Live</div>
       </div>
       <div class="map-file">
@@ -397,17 +397,17 @@ Their answers:
     </div>
   </div>
 
-  <!-- SIX DEGREES -->
+  <!-- FOUR DEGREES -->
   <div class="section">
     <div class="section-head">
       <div>
-        <div class="section-label">Six Degrees of Cinema</div>
+        <div class="section-label">Four Degrees of Cinema</div>
         <div class="section-title">How the Chain Works</div>
       </div>
     </div>
     <div class="prose">
-      <p>The Projection Room (<code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">sixdegrees.html</code>) takes two film titles and traces a factual cast or crew connection between them using the TMDB database — no invented chains. Both titles are resolved via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">search/movie</code>, their full credits fetched, and a direct intersection check runs first. If the two films share a person ID, the path is built immediately. Otherwise, Claude proposes a 1- or 2-hop path in a structured format, which is verified against real TMDB credits before being accepted. If verification fails, a second attempt fires with the failure reason injected into the prompt.</p>
-      <p>Once a verified path is confirmed, Claude narrates each connection in prose. Each link in the chain displays a role badge — gold for Director, muted cream for Actor — above the narration. The chain animates in step by step with staggered CSS delays, endpoint films distinguished by a gold border.</p>
+      <p>Four Degrees (<code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">sixdegrees.html</code>) takes two film titles and traces a factual cast or crew connection between them using the TMDB database — no invented chains. Both titles are resolved via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">search/movie</code> and their full credits fetched. A direct intersection check runs first: if the two films share a person ID, the path is built immediately without any Claude call. Otherwise, Claude proposes a path — 1-hop (one shared person), 2-hop (one intermediate film), or 3-hop (two intermediate films) — in a structured <strong>PATH:</strong> / <strong>NARRATION:</strong> format. The client verifies the suggestion against real TMDB credits before accepting it. For 3-hop paths, both intermediate films are resolved and their credits fetched in parallel via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">Promise.all</code>. If verification fails, a second attempt fires with the failure reason injected into the prompt.</p>
+      <p>Once a verified path is confirmed, Claude's narration is rendered as prose for each link in the chain. Each link displays a role badge — gold for Director, muted cream for Actor — above the narration sentence. The chain animates in step by step with staggered CSS delays, endpoint films distinguished by a gold border.</p>
     </div>
   </div>
 
