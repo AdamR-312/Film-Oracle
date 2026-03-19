@@ -114,7 +114,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 </nav>
 
 <header>
-  <div class="room-label">The Screening Room</div>
+  <div class="room-label">The Double Bill</div>
   <h1>Double <em>Feature</em></h1>
   <div class="header-ornament">
     <div class="orn-line"></div>
@@ -257,13 +257,19 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
 
   // ── API calls ─────────────────────────────────────────────────────────
 
-  async function searchFilm(query) {
-    const res = await fetch(`${WORKER}/search/movie?query=${encodeURIComponent(query)}&page=1`);
+  async function searchFilm(query, year) {
+    let url = `${WORKER}/search/movie?query=${encodeURIComponent(query)}&page=1`;
+    if (year) url += `&year=${year}`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('tmdb');
     const data = await res.json();
-    const results = data.results || [];
+    let results = data.results || [];
+    // If year filter returned nothing, retry without year constraint
+    if (!results.length && year) {
+      const res2 = await fetch(`${WORKER}/search/movie?query=${encodeURIComponent(query)}&page=1`);
+      if (res2.ok) results = (await res2.json()).results || [];
+    }
     if (!results.length) throw new Error('not-found');
-    // Prefer a result with a poster
     return results.find(m => m.poster_path) || results[0];
   }
 
@@ -375,7 +381,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       setLoadingText('Tracking down your double bill...');
       let filmB = null;
       try {
-        filmB = await searchFilm(`${pairing.pairing} ${pairing.year}`);
+        filmB = await searchFilm(pairing.pairing, pairing.year);
       } catch (_) {
         // No TMDB match for the pairing — render without poster
       }

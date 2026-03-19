@@ -19,7 +19,7 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 | `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
 | `concession.html` | The Concession Stand | Fill-in-the-blank famous quotes — Claude responds in character as the original speaker |
 | `sixdegrees.html` | The Projection Room | Six Degrees of Cinema — TMDB-verified cast/crew chain between any two films; Claude narrates each link |
-| `doublefeature.html` | The Screening Room | Double Feature — enter one film, Claude suggests a paired double bill and writes the programmer's note |
+| `doublefeature.html` | The Double Bill | Double Feature — enter one film, Claude suggests a paired double bill and writes the programmer's note |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
 ---
@@ -143,9 +143,9 @@ The Concession Stand (`concession.html`) displays a famous movie quote with the 
 
 ## Double Feature
 
-The Screening Room (`doublefeature.html`) takes one film title, resolves it via TMDB, then asks Claude to suggest a double bill pairing — a second film that shares a thematic, tonal, or aesthetic connection with the first.
+The Double Bill (`doublefeature.html`) takes one film title, resolves it via TMDB, then asks Claude to suggest a double bill pairing — a second film that shares a thematic, tonal, or aesthetic connection with the first.
 
-Claude returns a JSON object with the pairing title, year, and a three-sentence programmer's note. The pairing title is then resolved through TMDB to retrieve a poster. Both films render side by side in a "Tonight's Programme" card with the programmer's note below. If TMDB cannot find a poster for the suggested pairing, the title and year still display without a poster image.
+Claude returns a JSON object with the pairing title, year, and a three-sentence programmer's note. The pairing title and year are resolved through TMDB using the `&year=` query parameter (with a fallback retry without the year constraint if no results are found). Both films render side by side in a "Tonight's Programme" card with the programmer's note below. If TMDB cannot find a poster for the suggested pairing, the title and year still display without a poster image.
 
 ---
 
@@ -244,7 +244,7 @@ Film-Oracle/
 ├── classic.html        # The Archive (public domain cinema)
 ├── concession.html     # The Concession Stand (fill-in-the-blank quotes)
 ├── sixdegrees.html     # The Projection Room (Six Degrees of Cinema)
-├── doublefeature.html  # The Screening Room (Double Feature pairing)
+├── doublefeature.html  # The Double Bill (Double Feature pairing)
 ├── staff.html          # Technical documentation
 ├── style.css           # Shared design system
 ├── CLAUDE.md           # Repository guide for Claude Code
