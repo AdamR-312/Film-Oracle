@@ -129,9 +129,13 @@ Each list fetches four pages of results simultaneously (~80 candidates), then fi
 
 ## Four Degrees of Cinema
 
-Four Degrees (`sixdegrees.html`) takes two film titles and traces a factual cast or crew chain connecting them — up to 3 hops, meaning up to 4 films and 3 connecting people.
+Four Degrees (`sixdegrees.html`) takes two film titles and traces a factual cast or crew chain connecting them — up to 3 hops, meaning up to 4 films and 3 connecting people. The chain is discovered by real graph traversal over TMDB, not hallucinated and verified.
 
-Both titles are resolved via TMDB `search/movie` and their credits fetched. A direct intersection check runs first: if the two films share a person ID, the path is built immediately with no Claude call needed. Otherwise, Claude proposes a 1-hop, 2-hop, or 3-hop path in a structured `PATH:` / `NARRATION:` format, verified against real TMDB credits before being accepted. If verification fails, a second attempt fires with the failure reason injected into the prompt. Intermediate films in 3-hop paths are resolved in parallel via `Promise.all`. Once a verified path is confirmed, the chain renders as vertical glassmorphism cards with staggered animation delays, endpoint films distinguished by a gold border.
+Both titles are resolved via TMDB `search/movie` and their credits fetched. A direct intersection check runs first: if the two films share a person ID (1-hop), the path is built immediately. Otherwise a **two-sided bipartite BFS** expands both films' credits in parallel — every cast/crew member's filmography is fetched through a worker-pool concurrency limiter (cap 8, matching the browser's same-origin limit), and any film appearing in both sides' frontiers becomes a 2-hop bridge candidate. Candidates are ranked by role weight (Director > Writer > lead actor > supporting cast) plus a popularity factor; the top-scoring bridge wins.
+
+Only if BFS turns up nothing does Claude propose a 3-hop path as fallback, in a strict `PATH:` format — two intermediate films and three connecting people — which is then verified against real TMDB credits using diacritic-insensitive exact name matching. One retry fires with the failure reason injected. Once a verified path is confirmed, a final Claude call narrates each link in one elegant sentence per connection.
+
+Implementation details: `movie_credits` results are filtered for noise (adult, no release date, `vote_count < 5`); resolved-only caching means a transient network blip never poisons the graph with an empty result; `AbortSignal.timeout` bounds every TMDB call; HTTP 429 responses honour the `Retry-After` header.
 
 ---
 
