@@ -54,6 +54,19 @@ main { max-width:800px; margin:0 auto; padding:64px 48px 140px; position:relativ
 }
 .cl-dot { width:5px; height:5px; border-radius:50%; background:var(--gold-dim); margin:2px 0; box-shadow:0 0 6px rgba(201,168,76,0.4); }
 .cl-text { font-family:'EB Garamond',Georgia,serif; font-style:italic; font-size:16px; color:var(--cream-muted); text-align:center; padding:6px 48px; line-height:1.55; }
+.cl-name { font-family:'Playfair Display',serif; font-size:14px; color:var(--cream-dim); letter-spacing:0.5px; margin-bottom:10px; opacity:0.85; }
+.chain-history-mark { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:20px; padding:14px 24px; background:rgba(15,5,8,0.45); border-left:1px solid rgba(201,168,76,0.35); border-right:1px solid rgba(201,168,76,0.35); font-family:'EB Garamond',serif; font-style:italic; font-size:13px; color:rgba(232,200,106,0.78); letter-spacing:0.3px; }
+.chm-mark { color:var(--gold); font-size:14px; text-shadow:0 0 10px rgba(201,168,76,0.5); }
+.cl-person-row { display:flex; align-items:center; gap:22px; max-width:640px; padding:6px 24px; }
+.cl-portrait-wrap { width:78px; height:78px; flex-shrink:0; position:relative; }
+.cl-portrait { width:78px; height:78px; border-radius:50%; object-fit:cover; object-position:50% 22%; display:block; border:1.5px solid rgba(201,168,76,0.35); box-shadow:0 0 0 1px rgba(15,5,8,0.7), 0 0 14px rgba(201,168,76,0.22), 0 0 28px rgba(201,168,76,0.08); filter:saturate(0.85) brightness(0.95); transition:filter 0.3s, box-shadow 0.3s, border-color 0.3s; }
+.chain-link:hover .cl-portrait { filter:saturate(1) brightness(1); border-color:rgba(201,168,76,0.55); box-shadow:0 0 0 1px rgba(15,5,8,0.7), 0 0 18px rgba(201,168,76,0.4), 0 0 36px rgba(201,168,76,0.16); }
+.cl-portrait-fallback { width:78px; height:78px; border-radius:50%; background:linear-gradient(135deg,rgba(42,16,24,0.92),rgba(15,5,8,0.96)); border:1.5px solid rgba(201,168,76,0.32); display:flex; align-items:center; justify-content:center; font-family:'Cinzel',serif; font-size:18px; letter-spacing:2px; color:var(--gold); text-shadow:0 0 10px rgba(201,168,76,0.4); box-shadow:0 0 12px rgba(201,168,76,0.16); }
+.cl-person-row .cl-text { text-align:left; padding:0; flex:1; }
+@media (max-width: 640px) {
+  .cl-person-row { flex-direction:column; gap:14px; padding:6px 16px; }
+  .cl-person-row .cl-text { text-align:center; }
+}
 /* ── Role badge ──────────────────────────────────────────────────── */
 .cl-role { font-family:'Cinzel',serif; font-size:7px; letter-spacing:3px; text-transform:uppercase; margin-bottom:4px; opacity:0.9; }
 .cl-role.role-director   { color:var(--gold); text-shadow:0 0 10px rgba(201,168,76,0.4); }
@@ -148,6 +161,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   const ORACLE = 'https://oracle-proxy.adamrowe312.workers.dev';
   const TMDB   = 'https://tmdb-proxy.adamrowe312.workers.dev';
   const IMG    = 'https://image.tmdb.org/t/p/w342';
+  const PROFILE_IMG = 'https://image.tmdb.org/t/p/w185';
 
   const ROMAN = ['I','II','III','IV','V','VI','VII'];
 
@@ -226,10 +240,10 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
       const data = await fetchWithRetry(`${TMDB}/movie/${filmId}/credits`);
       const cast = (data.cast || [])
         .filter(p => p.order != null && p.order < CAST_TOP_N)
-        .map(p => ({ id: p.id, name: p.name, job: 'Actor', role: 'cast', order: p.order }));
+        .map(p => ({ id: p.id, name: p.name, profile_path: p.profile_path, job: 'Actor', role: 'cast', order: p.order }));
       const crew = (data.crew || [])
         .filter(p => PREFERRED_JOBS.includes(p.job))
-        .map(p => ({ id: p.id, name: p.name, job: p.job, role: 'crew' }));
+        .map(p => ({ id: p.id, name: p.name, profile_path: p.profile_path, job: p.job, role: 'crew' }));
       // Dedupe by person id, crew wins so a director-who-cameos reads as Director
       const seen = new Set();
       const people = [];
@@ -479,6 +493,7 @@ ROLE3: [person3's role in Film B]`;
         type: 'person',
         id: match.id,
         name: match.name,
+        profile_path: match.profile_path,
         job,
         role: PREFERRED_JOBS.includes(job) ? 'crew' : 'cast'
       };
@@ -553,6 +568,114 @@ ${format}`;
     return `${person.name} served as ${article} ${person.job} on both ${filmLeft.title} and ${filmRight.title}, linking them through shared craft.`;
   }
 
+  // ── Claude deep fallback — used when strict 3-hop verify cannot validate ─
+
+  async function claudeDeepFallback(filmA, filmB) {
+    const prompt = `The strict TMDB graph search has failed to find a connection between two films within 3 hops. Use your knowledge of cinema to trace a real connection through 3 to 5 shared collaborators (actors, directors, writers, producers, cinematographers, editors).
+
+Film A: "${filmA.title}" (${filmA.year})
+Film B: "${filmB.title}" (${filmB.year})
+
+Use real, credited collaborations between professionals who actually worked together. Use exact credited names — no nicknames, no initials.
+
+Respond ONLY with valid JSON. No markdown fences, no preamble:
+{
+  "films": [
+    { "title": "Film A Title", "year": ${filmA.year || 0} },
+    { "title": "Intermediate Film", "year": 0 },
+    { "title": "Film B Title", "year": ${filmB.year || 0} }
+  ],
+  "people": [
+    { "name": "Person Name", "role": "Director|Actor|Screenplay|Writer|Producer|Director of Photography|Editor", "narration": "One sentence, 14-22 words, evocative present-tense prose linking this person across the two adjacent films, in the voice of an elegant cinema oracle." }
+  ]
+}
+
+Rules:
+- films[0] is Film A, films[last] is Film B
+- people.length must equal films.length - 1
+- Each people[i] worked on BOTH films[i] AND films[i+1]
+- Aim for 3 person-hops; use up to 5 only if necessary`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+    try {
+      const res = await fetch(ORACLE, {
+        signal: controller.signal,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 900,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const text = (data.content || []).map(c => c.text || '').join('');
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+      const parsed = JSON.parse(match[0]);
+      if (!parsed || !Array.isArray(parsed.films) || !Array.isArray(parsed.people)) return null;
+      if (parsed.films.length < 2 || parsed.people.length !== parsed.films.length - 1) return null;
+      return parsed;
+    } catch(_) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // Best-effort TMDB enrichment for posters and headshots — failures are non-fatal
+  async function enrichDeepFallback(deep, filmA, filmB) {
+    const films = deep.films.map(f => ({ title: f.title, year: f.year, id: null, poster_path: null }));
+    films[0] = { title: filmA.title, year: filmA.year, id: filmA.id, poster_path: filmA.poster_path };
+    films[films.length - 1] = { title: filmB.title, year: filmB.year, id: filmB.id, poster_path: filmB.poster_path };
+
+    const filmTasks = [];
+    for (let i = 1; i < films.length - 1; i++) {
+      const f = films[i];
+      filmTasks.push((async () => {
+        const real = await resolveFilm(`${f.title}${f.year ? ' (' + f.year + ')' : ''}`).catch(() => null);
+        if (real) films[i] = { title: real.title, year: real.year, id: real.id, poster_path: real.poster_path };
+      })());
+    }
+
+    const people = deep.people.map(p => ({ name: p.name, role: p.role, narration: p.narration, id: null, profile_path: null }));
+    const personTasks = people.map((p, idx) => (async () => {
+      try {
+        const url = `${TMDB}/search/person?query=${encodeURIComponent(p.name)}&include_adult=false`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+        if (!res.ok) return;
+        const data = await res.json();
+        const hit = (data.results || []).find(r => r.profile_path) || (data.results || [])[0];
+        if (hit) { people[idx].id = hit.id; people[idx].profile_path = hit.profile_path; }
+      } catch(_) {}
+    })());
+
+    await Promise.allSettled([...filmTasks, ...personTasks]);
+    return { films, people };
+  }
+
+  function buildDeepPath(enriched) {
+    const path = [];
+    for (let i = 0; i < enriched.films.length; i++) {
+      const f = enriched.films[i];
+      path.push({ type: 'film', id: f.id, title: f.title, year: f.year, poster_path: f.poster_path });
+      if (i < enriched.people.length) {
+        const p = enriched.people[i];
+        path.push({
+          type: 'person',
+          id: p.id,
+          name: p.name,
+          profile_path: p.profile_path,
+          job: p.role,
+          role: PREFERRED_JOBS.includes(p.role) ? 'crew' : 'cast'
+        });
+      }
+    }
+    return path;
+  }
+
   // ── Render (preserved from original) ─────────────────────────────────
 
   function roleClass(job) {
@@ -581,24 +704,48 @@ ${format}`;
       </div>`;
   }
 
+  function initialsFor(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    const first = (parts[0][0] || '').toUpperCase();
+    const last  = parts.length > 1 ? (parts[parts.length - 1][0] || '').toUpperCase() : '';
+    return ((first + last).replace(/[^A-Z]/g, '') || '?');
+  }
+
   function buildPersonLinkHTML(node, narration, animIndex) {
     const rc = roleClass(node.job);
     const d = `${animIndex * 0.18 + 0.09}s`;
+    const inits = initialsFor(node.name);
+    const portrait = node.profile_path
+      ? `<img class="cl-portrait" src="${PROFILE_IMG}${node.profile_path}" alt="${esc(node.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=cl-portrait-fallback>${inits}</div>'">`
+      : `<div class="cl-portrait-fallback">${inits}</div>`;
     return `
       <div class="chain-link" style="animation-delay:${d}; --link-delay:${d}">
         <div class="cl-line"></div>
         <div class="cl-dot"></div>
         <div class="cl-role ${rc}">${esc(node.job)}</div>
-        <div class="cl-text">${esc(narration || node.name)}</div>
+        <div class="cl-name">${esc(node.name)}</div>
+        <div class="cl-person-row">
+          <div class="cl-portrait-wrap">${portrait}</div>
+          <div class="cl-text">${esc(narration || node.name)}</div>
+        </div>
         <div class="cl-dot"></div>
         <div class="cl-line"></div>
       </div>`;
   }
 
-  function renderChain(path, narration) {
+  function renderChain(path, narration, opts) {
     document.getElementById('loadingState').style.display = 'none';
     const container = document.getElementById('chain');
     container.innerHTML = '';
+
+    if (opts && opts.sourcedFromHistory) {
+      container.insertAdjacentHTML('beforeend',
+        `<div class="chain-history-mark">
+           <span class="chm-mark">⟡</span>
+           <span class="chm-text">Traced through cinema history — beyond the strict TMDB graph</span>
+         </div>`);
+    }
 
     const filmNodes = path.filter(n => n.type === 'film');
     const totalFilms = filmNodes.length;
@@ -629,7 +776,7 @@ ${format}`;
     const role = PREFERRED_JOBS.includes(person.job) ? 'crew' : 'cast';
     return [
       { type: 'film', ...filmA },
-      { type: 'person', id: person.id, name: person.name, job: person.job, role },
+      { type: 'person', id: person.id, name: person.name, profile_path: person.profile_path, job: person.job, role },
       { type: 'film', ...filmB }
     ];
   }
@@ -638,10 +785,10 @@ ${format}`;
     const pA = candidate.personA, pB = candidate.personB, f = candidate.intermFilm;
     return [
       { type: 'film', ...filmA },
-      { type: 'person', id: pA.id, name: pA.name, job: pA.job,
+      { type: 'person', id: pA.id, name: pA.name, profile_path: pA.profile_path, job: pA.job,
         role: PREFERRED_JOBS.includes(pA.job) ? 'crew' : 'cast' },
       { type: 'film', id: f.id, title: f.title, year: f.year, poster_path: f.poster_path },
-      { type: 'person', id: pB.id, name: pB.name, job: pB.job,
+      { type: 'person', id: pB.id, name: pB.name, profile_path: pB.profile_path, job: pB.job,
         role: PREFERRED_JOBS.includes(pB.job) ? 'crew' : 'cast' },
       { type: 'film', ...filmB }
     ];
@@ -708,7 +855,19 @@ ${format}`;
         result = suggestion ? await verify3Hop(suggestion, filmA, filmB, creditsA, creditsB) : null;
       }
 
-      if (!result || !result.verified) throw new Error('no-path');
+      if (!result || !result.verified) {
+        setStatus('Tracing through cinema history...');
+        const deep = await claudeDeepFallback(filmA, filmB);
+        if (deep) {
+          setStatus('Resolving collaborators...');
+          const enriched = await enrichDeepFallback(deep, filmA, filmB);
+          const path = buildDeepPath(enriched);
+          const narration = deep.people.map(p => p.narration || '');
+          renderChain(path, narration, { sourcedFromHistory: true });
+          return;
+        }
+        throw new Error('no-path');
+      }
 
       setStatus('Consulting the oracle...');
       const narration = await narrateVerifiedPath(result.path);

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup B+E — Projector Beam &amp; Dust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=EB+Garamond:ital,wght@0,400;1,400&family=Cinzel:wght@400;500&family=Courier+Prime:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* ─── PAGE LAYOUT (mockup-only) ────────────────────── */
+main { max-width: 760px; margin: 0 auto; padding: 100px 48px 120px; position: relative; z-index: 3; }
+.mock-header { text-align: center; padding: 80px 48px 40px; position: relative; z-index: 3; }
+.mock-label { font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 5px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 24px; }
+.mock-title { font-family:'Playfair Display',serif; font-size: clamp(32px, 5vw, 52px); font-style: italic; color: var(--cream); margin-bottom: 20px; line-height: 1.15; }
+.mock-sub { font-family:'EB Garamond',serif; font-size: 18px; color: var(--cream-dim); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+.mock-back { position: fixed; top: 28px; left: 32px; z-index: 50; font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 3px; color: var(--cream-muted); text-decoration: none; transition: color 0.2s; }
+.mock-back:hover { color: var(--gold); }
+section { margin-bottom: 88px; }
+.section-label { font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 4px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 14px; }
+section h2 { font-family:'Playfair Display',serif; font-size: 36px; font-style: italic; color: var(--cream); margin-bottom: 26px; line-height: 1.2; }
+section p { font-family:'EB Garamond',serif; font-size: 18px; line-height: 1.75; color: var(--cream-dim); margin-bottom: 18px; }
+
+/* ─── PROJECTOR BEAM (effect B) ─────────────────────── */
+/* A wide, soft wash of warm light from above — more atmosphere than spotlight.
+   Three layers: outer ambient, mid wash, and a faint aperture suggestion. */
+
+/* Outer ambient — extends nearly the full viewport, very soft */
+.projector-beam {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 150% 160% at 50% -30%,
+      rgba(232, 200, 106, 0.085) 0%,
+      rgba(201, 168, 76, 0.055) 25%,
+      rgba(201, 168, 76, 0.030) 50%,
+      rgba(201, 168, 76, 0.012) 75%,
+      transparent 100%);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+}
+
+/* Mid wash — broad warm pool, slow flicker for arc-lamp feel */
+.projector-core {
+  position: fixed;
+  top: -15vh; left: 50%;
+  transform: translateX(-50%);
+  width: 95vw; max-width: 1200px;
+  height: 90vh;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse at 50% 0%,
+    rgba(255, 232, 160, 0.075) 0%,
+    rgba(232, 200, 106, 0.045) 30%,
+    rgba(201, 168, 76, 0.020) 60%,
+    transparent 90%);
+  filter: blur(12px);
+  mix-blend-mode: screen;
+  animation: beamFlicker 5.4s ease-in-out infinite;
+}
+@keyframes beamFlicker {
+  0%, 100% { opacity: 1;    }
+  41%      { opacity: 0.94; }
+  44%      { opacity: 0.85; }
+  47%      { opacity: 0.96; }
+  72%      { opacity: 0.92; }
+  74%      { opacity: 1;    }
+}
+
+/* Aperture: a soft hint of the source, no hot spot */
+.projector-aperture {
+  position: fixed;
+  top: 0; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px; height: 60px;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(circle,
+    rgba(255, 240, 180, 0.22) 0%,
+    rgba(232, 200, 106, 0.08) 45%,
+    transparent 80%);
+  filter: blur(6px);
+  border-radius: 50%;
+}
+
+/* ─── DUST CANVAS (effect E) ────────────────────────── */
+.dust-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+@media (max-width: 700px) {
+  main { padding: 100px 28px 100px; }
+  .mock-back { left: 24px; }
+  .projector-core { width: 40vw; }
+}
+</style>
+</head>
+
+<body>
+
+<a class="mock-back" href="index.html">&larr; Back to lobby</a>
+
+<div class="projector-beam" aria-hidden="true"></div>
+<div class="projector-core" aria-hidden="true"></div>
+<div class="projector-aperture" aria-hidden="true"></div>
+<canvas class="dust-canvas" id="dustCanvas" aria-hidden="true"></canvas>
+
+<header class="mock-header">
+  <div class="mock-label">Mockup B + E</div>
+  <div class="mock-title">Projector Beam &amp; Dust</div>
+  <div class="mock-sub">A cone of gold light from above; specks of dust drifting through it. The beam grows brighter the deeper you scroll.</div>
+</header>
+
+<main>
+  <section>
+    <div class="section-label">Reel One</div>
+    <h2>The Lobby</h2>
+    <p>The chandeliers dim by degrees, and the room remembers itself. Velvet rope, brass guides, and the soft conspiracy of murmurs in the foyer. Somewhere overhead, the projection booth wakes from its cool sleep, the carbon arcs warming gold.</p>
+    <p>Ushers move between rows with small flashlights cupped in their palms. Each beam is the length of an arm — discreet, polite, never lingering. The carpet absorbs every footfall. The room is louder closed than open.</p>
+    <p>A girl shakes a paper bag of sweets. A father sets down two glasses of dark fizz on a low table. The marquee outside burns the rain to gold.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Two</div>
+    <h2>The Auditorium</h2>
+    <p>The seat folds underneath you with a small mechanical sigh. Centre stalls, two-thirds back. The screen waits — a great pale rectangle held in by gold curtains, both ropes drawn tight by some unseen stagehand. Above, the ornament of the ceiling: a constellation of small dim bulbs in plaster vines.</p>
+    <p>A child in the row ahead asks if the film has started. Not yet. The lights dim again, halfway this time, and then a slow stretch toward black. Voices fall to whispers. The curtains begin to part.</p>
+    <p>This is the long held breath cinema is built around. Everyone has agreed, without saying so, to be still for the next two hours.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Three</div>
+    <h2>The Booth</h2>
+    <p>Up the iron stairs. Past a door with a small red bulb above it. Inside: two projectors, brass and black, paired like draught horses. The reels spin, eight inches wide, threaded through a labyrinth of rollers and into the gate.</p>
+    <p>The projectionist sits on a stool, listens for the cue marks at the corner of the frame. A small dot, then another, twelve seconds later. He throws the lever. The second projector takes over without seam. No one downstairs notices.</p>
+    <p>Heat radiates from the lamphouse. The smell is of warm celluloid and oil. The film moves at twenty-four pictures a second, each held for a fraction of a fraction in the gate, then pulled away. The pulldown is what makes cinema cinema.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Four</div>
+    <h2>The Marquee</h2>
+    <p>The letters are pegged into the marquee one by one with a long brass pole, by a man who has done this for thirty-two years. He calls the order in his head — title, then year, then showtimes. The wind moves the letters slightly in their slots.</p>
+    <p>Below, the box office glows like a lantern. A queue forms in the rain. Each ticket is the colour of bone, with a small gold star in the corner.</p>
+    <p>At the corner of every marquee: the small framed posters. Coming soon. Some of them are good. Some of them will be remembered.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Five</div>
+    <h2>The Reel</h2>
+    <p>And then the credits, and the slow rise of the houselights, and the shuffle of coats and bags. A few people stay to read every name, out of love or politeness or because that's how their parents taught them.</p>
+    <p>The projectionist rewinds. The reel is heavy. He cradles it like a child as he carries it back to the cabinet. Tomorrow, another film. Or maybe the same one again.</p>
+    <p>Outside: the marquee, still bright. The rain has stopped. The pavement gleams.</p>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 40px 24px 80px; color: var(--cream-muted); font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 4px; position: relative; z-index: 3;">
+  END OF REEL
+</footer>
+
+<script>
+(function() {
+  if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+
+  const canvas = document.getElementById('dustCanvas');
+  const ctx = canvas.getContext('2d');
+  let dpr = window.devicePixelRatio || 1;
+  let W = 0, H = 0;
+  let particles = [];
+  const COUNT = 70;
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function reset(p) {
+    p.x = Math.random() * W;
+    p.y = H + Math.random() * 40;
+    p.vx = (Math.random() - 0.5) * 0.18;
+    p.vy = -(0.12 + Math.random() * 0.42);
+    p.r = 0.5 + Math.random() * 1.7;
+    p.a = 0.15 + Math.random() * 0.55;
+    p.drift = Math.random() * Math.PI * 2;
+    return p;
+  }
+
+  function init() {
+    particles = [];
+    for (let i = 0; i < COUNT; i++) {
+      const p = reset({});
+      p.y = Math.random() * H;
+      particles.push(p);
+    }
+  }
+
+  function step() {
+    ctx.clearRect(0, 0, W, H);
+    const beamCenter = W / 2;
+    const beamHalfWidth = W * 0.42;
+    for (const p of particles) {
+      p.drift += 0.012;
+      p.x += p.vx + Math.sin(p.drift) * 0.22;
+      p.y += p.vy;
+      if (p.y < -10 || p.x < -20 || p.x > W + 20) reset(p);
+
+      const cone = 1 - Math.min(1, Math.abs(p.x - beamCenter) / beamHalfWidth);
+      const verticalFalloff = 1 - Math.min(1, p.y / H);
+      const glow = cone * verticalFalloff;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232, 200, 106, ' + (p.a * (0.35 + glow * 0.75)).toFixed(3) + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(step);
+  }
+
+  resize();
+  window.addEventListener('resize', () => { resize(); init(); }, { passive: true });
+  init();
+  requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>

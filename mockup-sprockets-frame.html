@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup A+D — Sprockets &amp; Frame Counter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=EB+Garamond:ital,wght@0,400;1,400&family=Cinzel:wght@400;500&family=Courier+Prime:ital,wght@0,400;0,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* ─── PAGE LAYOUT (mockup-only) ────────────────────── */
+main { max-width: 760px; margin: 0 auto; padding: 100px 64px 120px; position: relative; z-index: 2; }
+.mock-header { text-align: center; padding: 80px 48px 40px; position: relative; z-index: 2; }
+.mock-label { font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 5px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 24px; }
+.mock-title { font-family:'Playfair Display',serif; font-size: clamp(32px, 5vw, 52px); font-style: italic; color: var(--cream); margin-bottom: 20px; line-height: 1.15; }
+.mock-sub { font-family:'EB Garamond',serif; font-size: 18px; color: var(--cream-dim); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+.mock-back { position: fixed; top: 28px; left: 56px; z-index: 50; font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 3px; color: var(--cream-muted); text-decoration: none; transition: color 0.2s; }
+.mock-back:hover { color: var(--gold); }
+section { margin-bottom: 88px; }
+.section-label { font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 4px; color: var(--gold-dim); text-transform: uppercase; margin-bottom: 14px; }
+section h2 { font-family:'Playfair Display',serif; font-size: 36px; font-style: italic; color: var(--cream); margin-bottom: 26px; line-height: 1.2; }
+section p { font-family:'EB Garamond',serif; font-size: 18px; line-height: 1.75; color: var(--cream-dim); margin-bottom: 18px; }
+
+/* ─── FILM STRIPS (effect A) ───────────────────────── */
+.film-strip {
+  position: fixed;
+  top: 0; bottom: 0;
+  width: 32px;
+  z-index: 6;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(8, 4, 8, 0.96) 0px,
+      rgba(8, 4, 8, 0.96) 16px,
+      rgba(28, 18, 22, 0.55) 16px,
+      rgba(28, 18, 22, 0.55) 18px,
+      rgba(48, 32, 22, 0.85) 18px,
+      rgba(48, 32, 22, 0.85) 36px,
+      rgba(28, 18, 22, 0.55) 36px,
+      rgba(28, 18, 22, 0.55) 38px
+    );
+  background-size: 100% 38px;
+  background-position-y: var(--strip-offset, 0);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.7);
+}
+.film-strip-l { left: 0; border-right: 1px solid rgba(201,168,76,0.20); }
+.film-strip-r { right: 0; border-left: 1px solid rgba(201,168,76,0.20); }
+
+/* faint specular highlight on the inner edge */
+.film-strip::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0;
+  width: 8px;
+  pointer-events: none;
+}
+.film-strip-l::after { right: 0; background: linear-gradient(to right, transparent, rgba(201,168,76,0.06)); }
+.film-strip-r::after { left: 0;  background: linear-gradient(to left,  transparent, rgba(201,168,76,0.06)); }
+
+@media (max-width: 700px) {
+  .film-strip { width: 18px; background-size: 100% 26px; }
+  .film-strip { background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(8, 4, 8, 0.96) 0px,
+      rgba(8, 4, 8, 0.96) 11px,
+      rgba(28, 18, 22, 0.55) 11px,
+      rgba(28, 18, 22, 0.55) 13px,
+      rgba(48, 32, 22, 0.85) 13px,
+      rgba(48, 32, 22, 0.85) 24px,
+      rgba(28, 18, 22, 0.55) 24px,
+      rgba(28, 18, 22, 0.55) 26px
+    );
+    background-position-y: var(--strip-offset, 0);
+  }
+  main { padding: 100px 36px 100px; }
+  .mock-back { left: 28px; }
+}
+
+/* ─── FRAME COUNTER (effect D) ────────────────────── */
+.frame-counter {
+  position: fixed;
+  bottom: 28px; right: 52px;
+  z-index: 50;
+  user-select: none;
+  pointer-events: none;
+  text-align: right;
+}
+.fc-label { font-family:'Cinzel',serif; font-size:8px; letter-spacing:4px; color: var(--cream-muted); margin-bottom: 6px; text-transform: uppercase; }
+.fc-num   { font-family:'Courier Prime', monospace; color: var(--gold); font-size: 13px; letter-spacing: 2px; }
+.fc-current { color: var(--gold-bright); text-shadow: 0 0 8px rgba(232,200,106,0.45); transition: color 0.2s; }
+.fc-tick  { display: inline-block; width: 8px; height: 1px; background: var(--gold); margin-left: 8px; vertical-align: middle; opacity: 0.55; transition: box-shadow 0.25s ease, opacity 0.25s ease, transform 0.25s ease; }
+.fc-tick.boost { box-shadow: 0 0 10px rgba(232,200,106,0.7), 0 0 18px rgba(232,200,106,0.3); opacity: 1; transform: scaleX(1.6); }
+
+@media (max-width: 700px) {
+  .frame-counter { bottom: 16px; right: 24px; }
+  .fc-num { font-size: 11px; }
+}
+</style>
+</head>
+
+<body>
+
+<a class="mock-back" href="index.html">&larr; Back to lobby</a>
+
+<div class="film-strip film-strip-l" aria-hidden="true"></div>
+<div class="film-strip film-strip-r" aria-hidden="true"></div>
+
+<div class="frame-counter" aria-hidden="true">
+  <div class="fc-label">Frame</div>
+  <div class="fc-num"><span class="fc-current" id="fcCurrent">000</span> / <span id="fcTotal">000</span><span class="fc-tick" id="fcTick"></span></div>
+</div>
+
+<header class="mock-header">
+  <div class="mock-label">Mockup A + D</div>
+  <div class="mock-title">Sprockets &amp; Frame Counter</div>
+  <div class="mock-sub">Scroll to see the film advance — perforations move past on each side, and the frame counter ticks at the corner. Headings nudge the counter brighter as they cross the threshold.</div>
+</header>
+
+<main>
+  <section>
+    <div class="section-label">Reel One</div>
+    <h2>The Lobby</h2>
+    <p>The chandeliers dim by degrees, and the room remembers itself. Velvet rope, brass guides, and the soft conspiracy of murmurs in the foyer. Somewhere overhead, the projection booth wakes from its cool sleep, the carbon arcs warming gold.</p>
+    <p>Ushers move between rows with small flashlights cupped in their palms. Each beam is the length of an arm — discreet, polite, never lingering. The carpet absorbs every footfall. The room is louder closed than open.</p>
+    <p>A girl shakes a paper bag of sweets. A father sets down two glasses of dark fizz on a low table. The marquee outside burns the rain to gold.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Two</div>
+    <h2>The Auditorium</h2>
+    <p>The seat folds underneath you with a small mechanical sigh. Centre stalls, two-thirds back. The screen waits — a great pale rectangle held in by gold curtains, both ropes drawn tight by some unseen stagehand. Above, the ornament of the ceiling: a constellation of small dim bulbs in plaster vines.</p>
+    <p>A child in the row ahead asks if the film has started. Not yet. The lights dim again, halfway this time, and then a slow stretch toward black. Voices fall to whispers. The curtains begin to part.</p>
+    <p>This is the long held breath cinema is built around. Everyone has agreed, without saying so, to be still for the next two hours.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Three</div>
+    <h2>The Booth</h2>
+    <p>Up the iron stairs. Past a door with a small red bulb above it. Inside: two projectors, brass and black, paired like draught horses. The reels spin, eight inches wide, threaded through a labyrinth of rollers and into the gate.</p>
+    <p>The projectionist sits on a stool, listens for the cue marks at the corner of the frame. A small dot, then another, twelve seconds later. He throws the lever. The second projector takes over without seam. No one downstairs notices.</p>
+    <p>Heat radiates from the lamphouse. The smell is of warm celluloid and oil. The film moves at twenty-four pictures a second, each held for a fraction of a fraction in the gate, then pulled away. The pulldown is what makes cinema cinema.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Four</div>
+    <h2>The Marquee</h2>
+    <p>The letters are pegged into the marquee one by one with a long brass pole, by a man who has done this for thirty-two years. He calls the order in his head — title, then year, then showtimes. The wind moves the letters slightly in their slots.</p>
+    <p>Below, the box office glows like a lantern. A queue forms in the rain. Each ticket is the colour of bone, with a small gold star in the corner.</p>
+    <p>At the corner of every marquee: the small framed posters. Coming soon. Some of them are good. Some of them will be remembered.</p>
+  </section>
+
+  <section>
+    <div class="section-label">Reel Five</div>
+    <h2>The Reel</h2>
+    <p>And then the credits, and the slow rise of the houselights, and the shuffle of coats and bags. A few people stay to read every name, out of love or politeness or because that's how their parents taught them.</p>
+    <p>The projectionist rewinds. The reel is heavy. He cradles it like a child as he carries it back to the cabinet. Tomorrow, another film. Or maybe the same one again.</p>
+    <p>Outside: the marquee, still bright. The rain has stopped. The pavement gleams.</p>
+  </section>
+</main>
+
+<footer style="text-align:center; padding: 40px 24px 80px; color: var(--cream-muted); font-family:'Cinzel',serif; font-size: 10px; letter-spacing: 4px;">
+  END OF REEL
+</footer>
+
+<script>
+(function() {
+  if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+
+  const fcCurrent = document.getElementById('fcCurrent');
+  const fcTotal   = document.getElementById('fcTotal');
+  const fcTick    = document.getElementById('fcTick');
+  let lastFrame = -1;
+  let rafId = null;
+
+  function update() {
+    const y = window.scrollY;
+    document.body.style.setProperty('--strip-offset', (-y * 0.5) + 'px');
+
+    const maxS  = document.documentElement.scrollHeight - window.innerHeight;
+    const total = Math.max(1, Math.floor(maxS / 6));
+    const cur   = Math.min(total, Math.floor(y / 6));
+    if (cur !== lastFrame) {
+      fcCurrent.textContent = String(cur).padStart(3, '0');
+      lastFrame = cur;
+    }
+    fcTotal.textContent = String(total).padStart(3, '0');
+    rafId = null;
+  }
+
+  function onScroll() {
+    if (rafId == null) rafId = requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  update();
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        fcTick.classList.add('boost');
+        setTimeout(() => fcTick.classList.remove('boost'), 450);
+      }
+    });
+  }, { threshold: 0.4 });
+  document.querySelectorAll('section h2').forEach(el => obs.observe(el));
+})();
+</script>
+</body>
+</html>
