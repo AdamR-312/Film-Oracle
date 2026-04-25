@@ -18,7 +18,7 @@ A personal film site built in raw HTML, CSS, and vanilla JavaScript — no frame
 | `indie.html` | Screening Room No. 4 | Resources, forums, and state of independent exhibition |
 | `classic.html` | Screening Room No. 5 | Public domain film browser — Internet Archive, 8 curated programmes, lightbox player |
 | `concession.html` | The Concession Stand | Fill-in-the-blank famous quotes — Claude responds in character as the original speaker |
-| `sixdegrees.html` | Four Degrees | Four Degrees of Cinema — TMDB-verified cast/crew chain between any two films, up to 3 hops; Claude narrates each link |
+| `sixdegrees.html` | Four Degrees | Four Degrees of Cinema — TMDB-verified cast/crew chain between any two films, with circular headshots for each connector; Claude narrates each link, and a deep fallback (3–5 hops) covers paths that strict verify can't validate |
 | `doublefeature.html` | The Double Bill | Double Feature — enter one film, Claude suggests a paired double bill and writes the programmer's note |
 | `staff.html` | The Mezzanine | Technical documentation — architecture, stack, how the Oracle works |
 
@@ -129,11 +129,15 @@ Each list fetches four pages of results simultaneously (~80 candidates), then fi
 
 ## Four Degrees of Cinema
 
-Four Degrees (`sixdegrees.html`) takes two film titles and traces a factual cast or crew chain connecting them — up to 3 hops, meaning up to 4 films and 3 connecting people. The chain is discovered by real graph traversal over TMDB, not hallucinated and verified.
+Four Degrees (`sixdegrees.html`) takes two film titles and traces a factual cast or crew chain connecting them — typically up to 3 hops, with a deep fallback that extends to 5 when strict verification can't reach. Each connector in the rendered chain shows a circular TMDB headshot beside the prose narration.
 
 Both titles are resolved via TMDB `search/movie` and their credits fetched. A direct intersection check runs first: if the two films share a person ID (1-hop), the path is built immediately. Otherwise a **two-sided bipartite BFS** expands both films' credits in parallel — every cast/crew member's filmography is fetched through a worker-pool concurrency limiter (cap 8, matching the browser's same-origin limit), and any film appearing in both sides' frontiers becomes a 2-hop bridge candidate. Candidates are ranked by role weight (Director > Writer > lead actor > supporting cast) plus a popularity factor; the top-scoring bridge wins.
 
-Only if BFS turns up nothing does Claude propose a 3-hop path as fallback, in a strict `PATH:` format — two intermediate films and three connecting people — which is then verified against real TMDB credits using diacritic-insensitive exact name matching. One retry fires with the failure reason injected. Once a verified path is confirmed, a final Claude call narrates each link in one elegant sentence per connection.
+If BFS turns up nothing, Claude proposes a 3-hop path in a strict `PATH:` format — two intermediate films and three connecting people — which is then verified against real TMDB credits using diacritic-insensitive exact name matching. One retry fires with the failure reason injected.
+
+If both strict-verify attempts fail, a **deep fallback** kicks in: Claude returns a JSON path of 3–5 hops, and best-effort TMDB calls resolve the intermediate films and per-person headshots in parallel (`search/movie` and `search/person`, with `Promise.allSettled` so individual failures don't block the render). The chain renders the same way, but with a small italic banner above it — *"Traced through cinema history — beyond the strict TMDB graph"* — making the source of the path honest. `no-path` only throws if even Claude returns nothing parseable.
+
+Once a path is confirmed, a final Claude call narrates each link in one elegant sentence. Each rendered connector pairs a 78px circular TMDB headshot (initials fallback when TMDB has no profile photo) with the prose narration.
 
 Implementation details: `movie_credits` results are filtered for noise (adult, no release date, `vote_count < 5`); resolved-only caching means a transient network blip never poisons the graph with an empty result; `AbortSignal.timeout` bounds every TMDB call; HTTP 429 responses honour the `Retry-After` header.
 
