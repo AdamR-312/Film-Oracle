@@ -20,13 +20,15 @@ Recommendation: Run /scout first for higher-confidence proposals.
 Then proceed, but label each proposal with its confidence level (HIGH if it relies only on established codebase patterns; LOW if it involves external APIs or UX patterns that should have been researched).
 
 ### Step 2 — Read the codebase
-Before proposing anything, read ALL of the following:
-- Every `.html` file in the project directory (index.html, adams-oracle.html, top25.html, list.html, collection.html, indie.html, classic.html, concession.html, sixdegrees.html, staff.html, and any others present)
-- `style.css`
-- `CLAUDE.md`
+Start with these two files — they are the authoritative summary of the project and cover all pages, APIs, lobby grid, design conventions, and existing features:
 - `C:\Users\Adam\.claude\projects\c--Users-Adam-Desktop-Coding-Project-Movie-Oracle-HTMLs\memory\MEMORY.md`
+- `CLAUDE.md`
 
-Use MEMORY.md to understand: what has already been built, what APIs are in use, what patterns and conventions have been established, and what the lobby grid currently looks like. Do not propose features that already exist.
+MEMORY.md is kept current after every feature and is sufficient for proposal work. Do not propose features that already exist — check MEMORY.md first.
+
+**Only read raw HTML files if you need implementation detail beyond what MEMORY.md provides** — for example, if a proposal builds directly on top of an existing page (e.g. adding a second entry point to `adams-oracle.html`), read that specific file. Do not read all pages by default. Never read `style.css` for proposal purposes — the design system is documented in MEMORY.md and CLAUDE.md.
+
+Use MEMORY.md to confirm: what has already been built, which APIs are in use, what the lobby grid currently looks like, and what animation-delay the next room card would need.
 
 ### Step 3 — Generate ideas
 Produce a numbered list of 5–8 feature ideas ranked by:

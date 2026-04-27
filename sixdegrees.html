@@ -226,7 +226,11 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     const data = await res.json();
     const results = data.results || [];
     if (!results.length) return null;
-    const pick = results.find(m => m.poster_path) || results[0];
+    const normalClean = clean.toLowerCase().trim();
+    const exact = results.filter(m => m.title && m.title.toLowerCase().trim() === normalClean);
+    const pick = (exact.find(m => m.poster_path) || exact[0])
+              || results.find(m => m.poster_path)
+              || results[0];
     return {
       id: pick.id,
       title: pick.title,
