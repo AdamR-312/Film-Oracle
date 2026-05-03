@@ -93,8 +93,9 @@ body::after {
 .floor {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  height: 6px;
-  background: repeating-linear-gradient(90deg, var(--crimson) 0px, var(--crimson) 80px, var(--gold-pale) 80px, var(--gold-pale) 84px, var(--crimson) 84px);
+  height: 1px;
+  background: var(--gold-dim);
+  box-shadow: 0 0 8px rgba(201,168,76,0.3), 0 0 2px rgba(201,168,76,0.5);
   z-index: 10;
 }
 
