@@ -37,14 +37,14 @@ All pages share one stylesheet ([style.css](style.css)) for the cinema theme (ve
 | File | Purpose |
 |---|---|
 | [index.html](index.html) | Grand Lobby — navigation hub linking all rooms |
-| [adams-oracle.html](adams-oracle.html) | AI movie recommender — 14-question quiz → Claude API |
+| [adams-oracle.html](adams-oracle.html) | AI movie recommender — 14-question quiz → Claude API. Result card uses shimmer skeleton loaders during enrichment; ▶ Trailer button opens an in-page `<dialog>` with a click-to-load YouTube facade |
 | [collection.html](collection.html) | Adam's curated personal film collection |
 | [top25.html](top25.html) | Ranked genre/era/director lists |
 | [list.html](list.html) | Universal list renderer — loaded via URL params from top25 |
 | [indie.html](indie.html) | Independent & local theatre guide |
 | [classic.html](classic.html) | Internet Archive public domain film browser |
 | [concession.html](concession.html) | Fill-in-the-blank famous movie quotes game via Claude |
-| [sixdegrees.html](sixdegrees.html) | Four Degrees of Cinema — bipartite BFS over TMDB credits for 1-hop/2-hop; Claude proposes a strict-verified 3-hop and a 3–5 hop deep fallback when verify fails. Each connector renders with a circular TMDB headshot. |
+| [sixdegrees.html](sixdegrees.html) | Four Degrees of Cinema — bipartite BFS over TMDB credits for 1-hop/2-hop; Claude proposes a strict-verified 3-hop and a 3–5 hop deep fallback when verify fails. Each connector renders with a circular TMDB headshot. Shimmer skeleton chain stands in while the path is assembled. |
 | [doublefeature.html](doublefeature.html) | Double Feature — enter one film, Claude suggests a paired double bill with programmer's note |
 | [staff.html](staff.html) | Technical showcase / about page |
 
@@ -76,6 +76,8 @@ Shared structural elements (ceiling bar, floor stripe, curtains, scroll-rail) ar
 5. JS fetches TMDB recommendations for a 3-card "similar films" grid
 6. Second Claude call fires (max_tokens:180) → generates "On This Film" viewing dossier
 7. Wikipedia fetch → renders director bio panel
+8. Each section (result, similar films, dossier) shows a shimmer skeleton behind a 300ms delay gate while its fetch is in flight
+9. ▶ Trailer button (visible when TMDB returns an official YouTube trailer) opens a native `<dialog>` modal — iframe is built only on click via `youtube-nocookie.com/embed/{key}`; close clears the iframe to stop audio and restores focus to the trigger
 
 ### Filmstrip (index.html)
 

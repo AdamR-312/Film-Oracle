@@ -81,6 +81,19 @@ main { max-width:800px; margin:0 auto; padding:64px 48px 140px; position:relativ
 .try-line { width:18px; height:1px; background:currentColor; transition:width 0.3s; }
 .try-again-btn:hover .try-line { width:28px; }
 .error-msg { text-align:center; font-family:'Cinzel',serif; font-size:9px; letter-spacing:3px; color:var(--crimson-bright); text-transform:uppercase; padding:32px 0; display:none; }
+/* ── Skeleton chain (matches chain-node + chain-link geometry) ──────── */
+#chainSkeleton { display:none; flex-direction:column; gap:0; --skel-poster-w:68px; --skel-poster-h:102px; --skel-circle-d:78px; }
+#chainSkeleton .skel-chain-node { display:flex; gap:24px; align-items:center; padding:24px 28px; border:1px solid rgba(201,168,76,0.12); background:rgba(26,8,16,0.18); }
+#chainSkeleton .skel-poster { border:1px solid rgba(201,168,76,0.12); }
+#chainSkeleton .skel-chain-body { flex:1; min-width:0; }
+#chainSkeleton .skel-chain-link { display:flex; flex-direction:column; align-items:center; gap:14px; padding:18px 0; }
+#chainSkeleton .skel-chain-link .skel-line { height:1px; width:1px; min-height:18px; background:rgba(201,168,76,0.2); }
+#chainSkeleton .skel-chain-link .skel-line::after { display:none; }
+#chainSkeleton .skel-person-row { display:flex; align-items:center; gap:22px; max-width:640px; padding:6px 24px; }
+#chainSkeleton .skel-person-text { flex:1; min-width:0; }
+@media (max-width:640px) {
+  #chainSkeleton .skel-person-row { flex-direction:column; gap:14px; padding:6px 16px; }
+}
 footer { border-top:1px solid rgba(201,168,76,0.08); }
 @media(max-width:640px) {
   main { padding:48px 24px 100px; }
@@ -136,8 +149,57 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
     </div>
   </div>
 
-  <div class="loading-state" id="loadingState">Tracing the connection through the archives...</div>
+  <div class="loading-state" id="loadingState" role="status" aria-live="polite" aria-atomic="true">Tracing the connection through the archives...</div>
   <div class="error-msg" id="errorMsg"></div>
+
+  <div id="chainSkeleton" aria-hidden="true">
+    <div class="skel-chain-node">
+      <div class="skel-poster"></div>
+      <div class="skel-chain-body">
+        <div class="skel-line short"></div>
+        <div class="skel-line long" style="height:22px;margin-top:8px;"></div>
+        <div class="skel-line short"></div>
+      </div>
+    </div>
+    <div class="skel-chain-link">
+      <div class="skel-line"></div>
+      <div class="skel-person-row">
+        <div class="skel-circle"></div>
+        <div class="skel-person-text">
+          <div class="skel-line long"></div>
+          <div class="skel-line medium"></div>
+        </div>
+      </div>
+      <div class="skel-line"></div>
+    </div>
+    <div class="skel-chain-node">
+      <div class="skel-poster"></div>
+      <div class="skel-chain-body">
+        <div class="skel-line short"></div>
+        <div class="skel-line long" style="height:22px;margin-top:8px;"></div>
+        <div class="skel-line short"></div>
+      </div>
+    </div>
+    <div class="skel-chain-link">
+      <div class="skel-line"></div>
+      <div class="skel-person-row">
+        <div class="skel-circle"></div>
+        <div class="skel-person-text">
+          <div class="skel-line long"></div>
+          <div class="skel-line medium"></div>
+        </div>
+      </div>
+      <div class="skel-line"></div>
+    </div>
+    <div class="skel-chain-node">
+      <div class="skel-poster"></div>
+      <div class="skel-chain-body">
+        <div class="skel-line short"></div>
+        <div class="skel-line long" style="height:22px;margin-top:8px;"></div>
+        <div class="skel-line short"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="chainStage">
     <div class="chain" id="chain"></div>
@@ -183,6 +245,24 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
   function setStatus(msg) {
     document.getElementById('loadingState').textContent = msg;
   }
+
+  // ── Skeleton delay gate ──────────────────────────────────────────────
+  // Show skeleton only if work is still in flight after 300ms; hide on resolve/reject.
+  const SKEL_DELAY_MS = 300;
+  const chainSkel = (() => {
+    const el = document.getElementById('chainSkeleton');
+    let timer = null;
+    return {
+      schedule() {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => { el.style.display = 'flex'; }, SKEL_DELAY_MS);
+      },
+      hide() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        el.style.display = 'none';
+      }
+    };
+  })();
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -740,6 +820,7 @@ Rules:
 
   function renderChain(path, narration, opts) {
     document.getElementById('loadingState').style.display = 'none';
+    chainSkel.hide();
     const container = document.getElementById('chain');
     container.innerHTML = '';
 
@@ -814,6 +895,7 @@ Rules:
     document.getElementById('tryAgainWrap').style.display = 'none';
     document.getElementById('chain').innerHTML = '';
     document.getElementById('loadingState').style.display = 'block';
+    chainSkel.schedule();
 
     try {
       setStatus('Searching the archives...');
@@ -879,6 +961,7 @@ Rules:
 
     } catch(e) {
       document.getElementById('loadingState').style.display = 'none';
+      chainSkel.hide();
       document.getElementById('submitBtn').disabled = false;
       const errEl = document.getElementById('errorMsg');
       const msg = e.message === 'not-found'
@@ -904,6 +987,7 @@ Rules:
     document.getElementById('chainStage').style.display = 'none';
     document.getElementById('tryAgainWrap').style.display = 'none';
     document.getElementById('errorMsg').style.display = 'none';
+    chainSkel.hide();
     document.getElementById('submitBtn').disabled = false;
     document.getElementById('filmA').focus();
   }

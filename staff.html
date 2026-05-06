@@ -279,6 +279,10 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
         <div class="tech-name">Internet Archive API</div>
         <div class="tech-desc">The Archive page queries <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/advancedsearch.php</code> directly from the browser — no key, no proxy. Eight curated programme cards (Silent Era, Westerns, Noir, Horror, Sci-Fi, Comedy, Serials, All) each map to a distinct Lucene query using <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">AND</code> syntax across collection, subject, and year fields. Film thumbnails come from <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/services/img/{id}</code> and the selected film plays via an <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">archive.org/embed/{id}</code> iframe. The Internet Archive is a credential-free public API; calling it client-side is correct.</div>
       </div>
+      <div class="tech-card">
+        <div class="tech-name">YouTube (nocookie embed)</div>
+        <div class="tech-desc">Oracle trailers play in-page through a native HTML <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">&lt;dialog&gt;</code> rather than opening a new YouTube tab. The iframe is built only on click — pointed at <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">youtube-nocookie.com/embed/{key}</code> with <code style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--gold-dim)">strict-origin-when-cross-origin</code> referrer policy — and torn down (frame innerHTML cleared) on every close path so audio stops. No key, no proxy: YouTube's privacy-enhanced embed domain is open and credential-free.</div>
+      </div>
     </div>
   </div>
 
@@ -333,7 +337,7 @@ footer { border-top:1px solid rgba(201,168,76,0.08); }
         <div class="flow-num">5</div>
         <div class="flow-body">
           <div class="flow-title">TMDB Enriches the Result Card</div>
-          <div class="flow-desc">The film title is sent to TMDB's <strong>search/movie</strong> endpoint to find its ID. Two parallel requests then fire: <strong>movie/{id}?append_to_response=videos</strong> (fetches details and trailer in one call) and <strong>movie/{id}/recommendations</strong>. The result card is updated with a <strong>w342 poster</strong>, a backdrop image behind the card, a <strong>▶ Trailer</strong> button linking to YouTube if an official trailer exists, and a three-card grid of similar films below.</div>
+          <div class="flow-desc">The film title is sent to TMDB's <strong>search/movie</strong> endpoint to find its ID. Two parallel requests then fire: <strong>movie/{id}?append_to_response=videos</strong> (fetches details and trailer in one call) and <strong>movie/{id}/recommendations</strong>. The result card is updated with a <strong>w342 poster</strong>, a backdrop image behind the card, a <strong>▶ Trailer</strong> button that opens an in-page modal (see <em>Trailer Modal</em> below) when an official YouTube trailer exists, and a three-card grid of similar films below.</div>
         </div>
       </div>
       <div class="flow-connector"></div>
@@ -411,6 +415,39 @@ Their answers:
       <p>If BFS turns up empty, Claude is consulted as a 3-hop fallback: it proposes two intermediate films and three connecting people in a strict <strong>PATH:</strong> format, which is then verified against real TMDB credits using diacritic-insensitive exact name matching. One retry fires with the failure reason injected.</p>
       <p>When even the strict-verify retry fails, a <strong>deep fallback</strong> engages: Claude returns a JSON path of 3 to 5 hops, and best-effort TMDB calls resolve each intermediate film via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">search/movie</code> and each connector's headshot via <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">search/person</code> — in parallel, with <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">Promise.allSettled</code> so any single failure renders as a placeholder rather than blocking the chain. A small italic banner — <em>Traced through cinema history — beyond the strict TMDB graph</em> — appears above the result so the source of the path is honest. Only if Claude returns nothing parseable does the page surface a no-path error.</p>
       <p>Once a path is confirmed, a final Claude call narrates each link in one elegant sentence per connection. The chain animates in step by step with staggered CSS delays, endpoint films distinguished by a gold border, a role badge above each narration line, and a 78px circular TMDB headshot beside the prose (with an initials fallback when TMDB has no profile photo).</p>
+    </div>
+  </div>
+
+  <!-- SKELETON LOADERS -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">Loading State</div>
+        <div class="section-title">Skeleton Loaders</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>The Oracle and Four Degrees both make multi-step API calls — Anthropic, TMDB, sometimes Wikipedia — and each request can take anywhere between a few hundred milliseconds and several seconds. Rather than freeze the page on a spinner, both rooms render a <strong>shape-matched skeleton</strong> of the result while the network is in flight: the same poster proportions, the same line counts, the same circular headshots, all in muted velvet with a slow gold shimmer drifting across them.</p>
+      <p>The skeleton primitives live in <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">style.css</code> — <strong>.skel-line</strong>, <strong>.skel-poster</strong>, <strong>.skel-circle</strong>, <strong>.skel-card</strong> — themed against the velvet palette with a single shared <strong>skelShimmer</strong> keyframe (transparent → translucent gold → transparent, 1.8s ease-in-out). Each page sets its own geometry through CSS custom properties (<code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">--skel-poster-w/h</code>, <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">--skel-circle-d</code>, <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">--skel-card-h</code>) so the same primitives produce a 140&times;210 Oracle poster and a 68&times;102 Six Degrees film card without duplicated CSS.</p>
+      <p>Every fetch site is wrapped in a <strong>300ms delay gate</strong>: a <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">setTimeout</code> schedules the skeleton, and a paired <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">clearTimeout</code> on resolve, reject, or reset suppresses it. Quick responses never flash a placeholder; only when work is genuinely slow does the shimmer appear. Oracle has three independent gates — result card, similar films grid, viewing dossier — so each section reveals on its own data, not on a global spinner. Variable-length AI prose (the dossier, Six Degrees narration, Concession replies) is intentionally <em>not</em> skeletonized — a shape can't honestly preview text whose length is unknown.</p>
+      <p>Accessibility: every Oracle skeleton is a <strong>role="status" aria-live="polite" aria-busy="true"</strong> region with a visually-hidden <strong>.sr-only</strong> "Loading…" sentence for screen readers; the visible shimmer is <strong>aria-hidden</strong>. Six Degrees keeps its existing phased status text ("Searching the archives…", "Reading the credits…", "Tracing the connection…") as the live region and treats the skeleton as decorative. Under <strong>prefers-reduced-motion</strong> the sweep is replaced by a static low-opacity tint so the affordance survives without movement.</p>
+    </div>
+  </div>
+
+  <!-- TRAILER MODAL -->
+  <div class="section">
+    <div class="section-head">
+      <div>
+        <div class="section-label">In-House Player</div>
+        <div class="section-title">The Oracle Trailer Modal</div>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>When the Oracle returns a recommendation, the <strong>▶ Trailer</strong> button used to open a new YouTube tab. It now opens a native HTML <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">&lt;dialog&gt;</code> in the page itself — same gold-on-velvet language as everything else, with a 16:9 iframe wrapper and a styled <strong>::backdrop</strong> that dims and blurs the cinema behind it.</p>
+      <p>The trailer is pulled from TMDB's videos response, filtered to <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">site === 'YouTube'</code> and <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">type === 'Trailer'</code>, then sorted to prefer the official upload first and the most recently published one second. If no usable trailer exists, the button stays hidden — the room never advertises a player it can't open.</p>
+      <p>The iframe itself follows the <strong>facade pattern</strong>: nothing is loaded until the user clicks. On click, an iframe element is constructed in JS pointed at <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">www.youtube-nocookie.com/embed/{key}</code> with autoplay, <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">strict-origin-when-cross-origin</code> referrer policy, and the standard <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">allow</code> attributes for autoplay, encrypted media, picture-in-picture, and fullscreen. Every close path — the close button, an Esc keypress, a backdrop click, the dialog's native <strong>close</strong> event — clears the iframe's <code style="font-family:'Courier Prime',monospace;font-size:16px;color:var(--gold-dim)">innerHTML</code> first so the YouTube player is destroyed and audio stops, then closes the dialog and restores keyboard focus to the original <strong>▶ Trailer</strong> button. <strong>autofocus</strong> is set on the close button rather than the dialog itself (a desktop Chrome quirk), and the modal is labelled by the film title via <strong>aria-labelledby</strong>. The fade-in animation no-ops under <strong>prefers-reduced-motion</strong>.</p>
     </div>
   </div>
 

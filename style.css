@@ -388,6 +388,96 @@ footer::before {
   .theatre-rail { display: none; }
 }
 
+/* ── SKELETON LOADERS ──────────────────────────────── */
+/*
+  Themed shimmer skeletons. Show only when a fetch exceeds ~300ms (delay-gate
+  in JS) so quick responses never flash a placeholder. Per-page geometry is
+  set with CSS custom properties (--skel-poster-w/h, --skel-card-h, etc.)
+  inside each page's <style> block.
+
+  Accessibility template — wrap every skeleton subtree as:
+    <div class="skel-region" role="status" aria-live="polite" aria-busy="true">
+      <span class="sr-only">Loading the Oracle's recommendation…</span>
+      <div class="skel-card" aria-hidden="true"> … </div>
+    </div>
+  On render, set aria-busy="false", remove the .sr-only text, and remove the
+  .skel-* subtree (or set the parent's display:none).
+*/
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+.skel-line,
+.skel-poster,
+.skel-circle,
+.skel-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--velvet-mid);
+  border: 1px solid rgba(201,168,76,0.08);
+}
+
+.skel-line::after,
+.skel-poster::after,
+.skel-circle::after,
+.skel-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201,168,76,0.08) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: skelShimmer 1.8s ease-in-out infinite;
+}
+
+.skel-line {
+  display: block;
+  height: 14px;
+  width: 100%;
+  border-radius: 2px;
+  margin: 8px 0;
+}
+.skel-line.short  { width: 38%; }
+.skel-line.medium { width: 62%; }
+.skel-line.long   { width: 86%; }
+
+.skel-poster {
+  width: var(--skel-poster-w, 140px);
+  height: var(--skel-poster-h, 210px);
+  flex-shrink: 0;
+}
+
+.skel-circle {
+  width: var(--skel-circle-d, 78px);
+  height: var(--skel-circle-d, 78px);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skel-card {
+  width: 100%;
+  min-height: var(--skel-card-h, 180px);
+  padding: 24px 28px;
+  background: linear-gradient(135deg, rgba(26,8,16,0.28), rgba(15,5,8,0.35));
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  border: 1px solid rgba(201,168,76,0.12);
+}
+
+@keyframes skelShimmer {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(100%);  }
+  100% { transform: translateX(100%);  }
+}
+
 /* ── REDUCED MOTION ───────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -398,6 +488,15 @@ footer::before {
   .curtain-left  { transform: translateX(-100%) !important; }
   .curtain-right { transform: translateX(100%)  !important; }
   .filmstrip-scroll { animation: none !important; }
+  /* Keep skeletons visible as a static low-opacity tint instead of sweeping */
+  .skel-line::after,
+  .skel-poster::after,
+  .skel-circle::after,
+  .skel-card::after {
+    animation: none !important;
+    transform: none !important;
+    background: rgba(201,168,76,0.04) !important;
+  }
 }
 
 /* ── FOCUS VISIBLE ────────────────────────────────── */

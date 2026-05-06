@@ -79,11 +79,13 @@ After the Oracle responds, two parallel TMDB requests fire via `append_to_respon
 - `movie/{id}?append_to_response=videos` — fetches the film's details and trailer in one call
 - `movie/{id}/recommendations` — fetches similar films for the "Also Consider" grid
 
-The result card is then enriched with a `w342` poster, a backdrop image, a `▶ Trailer` button (YouTube link, if an official trailer exists), and a three-card similar films grid.
+The result card is then enriched with a `w342` poster, a backdrop image, a `▶ Trailer` button (when TMDB returns an official YouTube trailer), and a three-card similar films grid. Clicking **▶ Trailer** opens an in-page glassmorphism modal — a click-to-load YouTube facade, so the iframe never loads until the user asks for it. The modal uses the native `<dialog>` element for focus containment and Esc-close; closing the dialog clears the iframe to stop audio and restores focus to the trigger button. Embeds use `youtube-nocookie.com` for privacy.
 
 Simultaneously, the director's name is sent to the **Wikipedia REST API** (`/api/rest_v1/page/summary/{name}`) — called directly from the browser with no proxy — to fetch a biography extract and portrait thumbnail, displayed beneath the director credit.
 
 After the TMDB enrichment completes, a **second Claude call** fires (`max_tokens: 180`) — a viewing dossier. The prompt passes the film title, year, and director, asking for a 2-3 sentence guide covering: the film's cultural significance, one specific cinematic technique or moment worth noticing, and the emotional register of watching it. The dossier appears in the result card under **On This Film**.
+
+While the Oracle, TMDB enrichment, and dossier requests are in flight, **shimmer skeleton loaders** stand in for each section of the result card — poster + meta lines, the similar-films row, and the dossier text. Each skeleton sits behind a 300 ms delay gate so fast TMDB responses don't produce a quick-flash, and `prefers-reduced-motion: reduce` disables the sweep animation while keeping a static tint.
 
 If the user has already seen the recommendation, an "Already Seen It" button appends the title to a `seenFilms` array that travels with subsequent requests, instructing Claude not to repeat it.
 
@@ -138,6 +140,8 @@ If BFS turns up nothing, Claude proposes a 3-hop path in a strict `PATH:` format
 If both strict-verify attempts fail, a **deep fallback** kicks in: Claude returns a JSON path of 3–5 hops, and best-effort TMDB calls resolve the intermediate films and per-person headshots in parallel (`search/movie` and `search/person`, with `Promise.allSettled` so individual failures don't block the render). The chain renders the same way, but with a small italic banner above it — *"Traced through cinema history — beyond the strict TMDB graph"* — making the source of the path honest. `no-path` only throws if even Claude returns nothing parseable.
 
 Once a path is confirmed, a final Claude call narrates each link in one elegant sentence. Each rendered connector pairs a 78px circular TMDB headshot (initials fallback when TMDB has no profile photo) with the prose narration.
+
+While the chain is being assembled, a **skeleton chain** mirrors the geometry of a typical 2-hop result — three node skeletons separated by two link skeletons with circular portrait placeholders. The existing phased status text (*Searching the archives… Reading the credits… Tracing the connection…*) remains as the live region above the skeleton, so screen-reader users hear the pipeline progress while sighted users see the chain shape.
 
 Implementation details: `movie_credits` results are filtered for noise (adult, no release date, `vote_count < 5`); resolved-only caching means a transient network blip never poisons the graph with an empty result; `AbortSignal.timeout` bounds every TMDB call; HTTP 429 responses honour the `Retry-After` header.
 
